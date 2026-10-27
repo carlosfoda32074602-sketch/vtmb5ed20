@@ -708,6 +708,336 @@ const __v10RenderCharacters=renderCharacters;renderCharacters=function(c,d){cons
 const wizStyle=document.createElement('style');wizStyle.textContent=`#wizard-root:empty{display:none}.wizard-backdrop{position:fixed;inset:0;z-index:10000;background:#030407d9;backdrop-filter:blur(7px);display:grid;place-items:center;padding:18px}.creation-wizard{width:min(1080px,98vw);height:min(900px,94vh);display:flex;flex-direction:column;background:linear-gradient(160deg,#19151b,#0b0d13 60%);border:1px solid #65303a;border-radius:18px;box-shadow:0 30px 100px #000d;overflow:hidden}.wizard-head{display:flex;align-items:center;gap:12px;padding:17px 22px;border-bottom:1px solid #33242b;background:linear-gradient(100deg,#32121a,#15141b)}.wizard-head>div{flex:1}.wizard-head small{color:#d9aeb3;letter-spacing:.14em;font-size:10px}.wizard-head h2{font:26px Georgia,serif;margin:4px 0}.wizard-head p{color:#a8a5b0;margin:0;font-size:12px}.wizard-progress{display:flex;gap:4px;padding:12px 18px;border-bottom:1px solid #29232b;overflow-x:auto}.wizard-progress button{flex:1;min-width:72px;padding:7px 5px;display:grid;justify-items:center;gap:5px;background:#12141b;border-color:#2c2e38}.wizard-progress button span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#272a34;font-size:11px}.wizard-progress button small{font-size:9px;color:#9c9eaa}.wizard-progress button.active{border-color:#bd3849;background:#3a141c}.wizard-progress button.active span,.wizard-progress button.done span{background:#a92133;color:white}.wizard-body{padding:20px 24px;overflow:auto;flex:1}.wizard-body h3{font:23px Georgia,serif;margin:0 0 4px}.wizard-subtitle{color:#a7a8b3;margin:0 0 18px}.wizard-hint{color:#b5b6c1;font-size:12px;line-height:1.6;background:#11141b;border-left:3px solid #a62c3d;padding:10px 12px;border-radius:4px;margin:12px 0}.wizard-summary{padding:9px 12px;border:1px solid #39303a;border-radius:8px;margin:12px 0;color:#c9c6d0;font-size:12px}.wizard-attribute-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.wizard-attribute{border:1px solid #30313b;border-radius:10px;padding:12px;background:#101219}.wizard-attribute label{font-size:12px;color:#e1dce0}.wizard-attribute small{display:block;min-height:13px;color:#d4a65c;font-size:10px;margin-top:5px}.wizard-skill-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.wizard-skill{display:grid;grid-template-columns:1fr 58px;align-items:center;gap:8px;padding:6px 8px;border:1px solid #282b34;border-radius:7px;background:#101219;text-transform:none;letter-spacing:0;margin:0}.wizard-skill span{font-size:11px;color:#dedde3}.wizard-skill select{padding:5px}.wizard-footer{display:flex;align-items:center;gap:10px;padding:13px 18px;border-top:1px solid #30252d;background:#0c0e14}.wizard-footer span{margin:auto;color:#8d909c;font-size:10px}.wizard-review{border:1px solid #37303a;background:#101219;border-radius:12px;padding:16px}.wizard-review h3{margin:0}.wizard-review p{font-size:12px;color:#c6c5ce;line-height:1.6}.wizard-validation{display:grid;gap:6px;margin-top:16px}.wizard-validation div{font-size:12px;padding:7px 9px;border-radius:6px;background:#251b1f}.wizard-validation .ok{color:#85d4a8;background:#13251d}.wizard-validation .warn{color:#ffd080;background:#2a2115}@media(max-width:700px){.wizard-backdrop{padding:4px}.creation-wizard{height:98vh;width:100vw;border-radius:10px}.wizard-body{padding:14px}.wizard-attribute-grid,.wizard-skill-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wizard-footer span{display:none}.wizard-progress button{min-width:58px}.wizard-progress button small{font-size:8px}}`;
 document.head.appendChild(wizStyle);
 
+
+/* v12 — Catálogo estruturado de Vantagens e Defeitos; revisão de custos e seleção múltipla. */
+const V12_TRAITS = {
+advantages: [
+["Reflexos de Predador",1,"+2 em Iniciativa quando não estiver surpreso.","initiative",2],
+["Mãos Rápidas",1,"Uma vez por turno, faça uma interação simples adicional com equipamento."],
+["Lutador Sujo",1,"Ao acertar um alvo em desvantagem, escolha empurrá-lo 2 m, derrubá-lo ou causar +1 dano.","attack",1],
+["Especialista em Emboscada",1,"+2 no primeiro ataque contra alvo que ainda não agiu.","attack",2],
+["Duelista",1,"+1 Defesa com arma corpo a corpo e mão livre; uma vez por rodada, após um ataque corpo a corpo errar você, mova 2 m sem reação do atacante.","defense",1],
+["Atirador Preciso",1,"Ignore a primeira penalidade de distância ou cobertura parcial com arma de fogo."],
+["Corpo Acostumado",1,"+2 contra perigos ambientais mundanos, venenos, doenças e condições físicas mundanas, quando aplicável."],
+["Investigador Nato",1,"Uma vez por cena, faça uma pergunta objetiva sobre uma pista relevante encontrada."],
+["Memória Fotográfica",1,"+2 para recuperar informação específica já vista ou ouvida.","Investigação",2],
+["Leitura Corporal",1,"+2 em Perspicácia para perceber medo, mentira, hostilidade, atração ou intenção.","Perspicácia",2],
+["Voz de Autoridade",1,"+2 em Liderança ao dar ordens sob pressão.","Liderança",2],
+["Máscara Social",1,"Após observar um grupo por 10 minutos, +2 em Etiqueta ou Subterfúgio para se misturar.","Etiquette/Subterfúgio",2],
+["Sobrevivente",1,"Uma vez por cena, transforme falha de Sobrevivência em sucesso parcial com complicação."],
+["Sangue Frio",1,"+2 para resistir a Intimidação, medo, pânico, provocação e coerção emocional."],
+["Médico de Campo",1,"Estabilize feridos sob pressão como ação; uma vez por cena, sucesso excepcional recupera 1 Vitalidade."],
+["Adaptável",2,"Uma vez por cena, após ver o resultado, declare preparação plausível e ganhe Vantagem; o Narrador pode negar se impossível."],
+["Especialista Versátil",2,"Escolha duas Habilidades; uma vez por cena, use outro Atributo adequado em teste envolvendo uma delas."],
+["Segunda Chance",2,"Uma vez por sessão, repita um teste importante fracassado; o segundo resultado vale."],
+["Determinação Sobrenatural",2,"Uma vez por sessão, com 0 Força de Vontade ao defender Convicção, recupere 1 ponto."],
+["Predador Experiente",2,"Uma vez por noite, obtenha sucesso automático em uma etapa plausível da Caçada."],
+["Abertura Calculada",1,"Uma vez por cena, após estudar um adversário por um turno, +2 no primeiro ataque.","attack",2],
+["Defesa Adaptativa",1,"Uma vez por rodada, após sofrer ataque, +2 Defesa contra o próximo ataque do mesmo inimigo.","defense",2],
+["Explorador de Fraquezas",1,"Após observar adversário, Investigação ou Perspicácia revela vulnerabilidade relevante com teste."],
+["Economia de Movimento",1,"Uma vez por turno, levantar-se ou interagir com equipamento não consome Ação Bônus."],
+["Finalizador",2,"Uma vez por cena, +2 no ataque contra inimigo com metade ou menos da Vitalidade máxima.","attack",2],
+["Especialização de Combinação",2,"Escolha uma combinação Atributo + Habilidade; uma vez por cena, ganhe Vantagem quando adequada."],
+["Retirada Planejada",1,"Uma vez por cena, após inimigo errar ataque corpo a corpo, mova 3 m sem reação dele."],
+["Leitura de Iniciativa",1,"+2 para perceber emboscadas ou identificar ameaças antes do combate.","Percepção",2],
+["Reserva de Emergência",2,"Uma vez por sessão, ao cair abaixo de 1/4 da Vitalidade, recupere 1 Força de Vontade."],
+["Gestão de Vitae",2,"Uma vez por cena, reduza em 1 custo de Disciplina, mínimo 1; não vale para nível 5."],
+["Negociador Frio",1,"+2 em Persuasão ao negociar sob ameaça ou prazo curto.","Persuasão",2],
+["Operador de Campo",1,"+2 em Tecnologia ou Crime para neutralizar segurança já examinada.","Tecnologia/Crime",2],
+["Contra-Emboscada",2,"Uma vez por cena, se perceber emboscada, você e um aliado próximo não ficam surpresos."],
+["Caçador Persistente",1,"+2 em Sobrevivência para seguir trilha já encontrada.","Sobrevivência",2],
+["Foco Implacável",1,"+2 para manter concentração sob dor ou distração."],
+["Especialista em Contenção",1,"+2 para agarrar, imobilizar ou impedir fuga.","Atletismo",2],
+["Mira Paciente",1,"Se não se mover, +1 no próximo ataque à distância; perde o benefício ao trocar de alvo.","attack",1],
+["Avaliador de Risco",1,"Uma vez por cena, pergunte o risco imediato mais evidente de um plano ou local."],
+["Planejador",2,"Após 10 minutos de preparação, aliado que siga seu plano recebe +2 em um teste previsto; uma vez por cena."],
+["Comando Coordenado",2,"Uma vez por cena, aliado que o ouça recebe Vantagem em ação cooperativa relevante após seu teste de Liderança."],
+["Resistência à Dor",1,"+2 para impedir que dor mundana interrompa ação ou concentração."],
+["Desarme Técnico",1,"Uma vez por rodada, sucesso por 5+ em ataque corpo a corpo permite desarmar em vez de bônus de dano.","attack",0],
+["Infiltrador Metódico",1,"+2 em Furtividade após estudar rota, luz e cobertura.","Furtividade",2],
+["Mentiroso Preparado",1,"+2 em Subterfúgio para mentira preparada com antecedência e detalhes coerentes.","Subterfúgio",2],
+["Rede de Contatos",2,"Uma vez por sessão, declare contato plausível que forneça pista ou acesso limitado; favor perigoso cobra preço."],
+["Improviso Tático",1,"Uma vez por cena, use objeto comum para distração e Vantagem no próximo teste de fuga ou reposicionamento."],
+["Conhecedor de Disciplinas",2,"+2 para reconhecer efeitos de Disciplinas já testemunhados.","Ocultismo",2],
+["Guardião de Aliados",2,"Uma vez por rodada, reação impõe -2 a ataque contra aliado próximo, se estiver em posição plausível.","defense",-2],
+["Sangue Disciplinado",2,"+2 para manter concentração ao usar Disciplina sob pressão mundana."],
+["Veterano de Caçadas",2,"Uma vez por noite, após planejar Caçada, ignore uma complicação logística menor."]
+],
+specialAdvantages: [
+["Sangue Adaptável",3,"Uma vez por cena, escolha um efeito: +2 no teste de Surto, reduzir em 1 Vitae o custo de Disciplina (mínimo 1) ou +1 dado de cura. Não combina com efeito idêntico."],
+["Predador Excepcional",3,"Uma vez por noite, escolha um benefício após Caçada: reduzir em 1 a Fome adicional, recuperar 1 Vitae, preservar ressonância ou reduzir consequência mundana menor."],
+["Memória Perfeita",3,"Você recorda com precisão detalhes presenciados; para recuperar informação específica, o Narrador pode conceder Vantagem quando relevante.","Investigação",2],
+["Corpo Anômalo",3,"Característica física incomum aprovada pelo Narrador; benefício e limitação devem ser definidos antes da aquisição."],
+["Resistência Incomum",3,"Uma vez por cena, +2 para resistir a uma condição física específica escolhida.","resist",2],
+["Dom Especializado",3,"Receba um Dom ou capacidade equivalente de alcance limitado, com custo, risco e contrapartida aprovados."],
+["Sangue Antigo",3,"Após cumprir requisitos para elevar Potência de Sangue, reduza o custo dessa evolução em 25 XP uma vez por crônica."],
+["Mestre Ritualista",4,"Desenvolva rituais personalizados com tempo, componentes, custo, limite e risco aprovados."],
+["Sangue Resiliente",3,"Uma vez por crônica, quando dano comum o levaria a Torpor, permaneça com 1 Vitalidade e receba condição narrativa grave; não protege contra Diablerie ou Morte Final."],
+["Instinto Sobrenatural",3,"Uma vez por cena, pergunte se há algo sobrenaturalmente errado; resposta Sim, Não ou Indeterminado."],
+["Alma Indomável",3,"Uma vez por sessão, repita um teste fracassado de Humanidade ou de resistência a Frenesi; escolha a categoria ao adquirir."],
+["Monstro Entre Monstros",4,"Uma vez por crônica, tente uma façanha extraordinária aprovada; tentativa possível não garante sucesso."],
+["Diablerista Metódico",3,"Uma vez por tentativa de Diablerie, +2 no primeiro teste de extração de Vitae.","diablerie",2],
+["Assimilador de Ecos",3,"Após Diablerie, Vantagem no primeiro teste para recuperar memória específica da vítima."],
+["Anatomista da Alma",3,"Investigue geração aproximada, alterações sobrenaturais e riscos de assimilação de vampiro em Torpor.","Ocultismo",2],
+["Predador de Linhagens",3,"+2 em Investigação para rastrear evidências de vampiro de linhagem previamente estudada.","Investigação",2],
+["Vontade Devastadora",4,"Uma vez por sessão, repita um teste fracassado de Vontade na disputa de essência."],
+["Cirurgião da Vitae",3,"+2 em um teste por cena para analisar ou manipular Vitae por Feitiçaria de Sangue.","Ocultismo",2],
+["Caçador de Torpor",3,"+2 em um teste para localizar, conter ou neutralizar vampiro incapacitado; escolha uma finalidade por vez.","Investigação",2],
+["Herdeiro de Memórias",3,"Transforme memória assimilada em pista investigável, mantendo possíveis lacunas."],
+["Disciplina Herdada",4,"Após Diablerie válida, reduza em 5 XP o custo do primeiro nível de uma Disciplina conhecida pela vítima, uma vez por crônica."],
+["Fome Calculada",3,"Uma vez por noite, reduza uma complicação logística menor de Vitae ao preparar Diablerie."],
+["Máscara do Pecado",3,"+2 para ocultar evidências mundanas de Diablerie; não esconde aura alterada.","Subterfúgio",2],
+["Conquistador de Essência",4,"+2 no primeiro teste da disputa de essência durante tentativa de Diablerie.","diablerie",2],
+["Sangue de Reserva",3,"Após Diablerie concluída, recupere 1 Vitae uma vez por noite se a vítima tinha Vitae utilizável."],
+["Cartógrafo de Linhagens",3,"Uma vez por sessão, +2 para relacionar pistas registradas sobre Geração, Disciplinas e linhagens.","Investigação",2],
+["Sobrevivente da Assimilação",4,"Uma vez por crônica, mitigue uma consequência narrativa específica de assimilação mal resolvida; não cancela testes ou consequências morais."],
+["Vampiro de Dupla Técnica",3,"Uma vez por cena, use a mais adequada entre duas Habilidades previamente escolhidas em teste associado a Disciplina, se permitido."],
+["Mestre de Contra-ataque",3,"Uma vez por rodada, quando criatura ao alcance errar ataque contra você, gaste Reação para atacar corpo a corpo com -2.","attack",-2],
+["Reservatório Disciplinado",4,"Uma vez por sessão, reduza em 1 Vitae o custo de poder de Disciplina de nível 1–4 (mínimo 1)."],
+["Fortaleza Mental",3,"+2 em Resistência Mental contra controle sobrenatural; não concede imunidade.","resist",2],
+["Predador de Caçadores",3,"+2 para identificar táticas e rastros de caçadores de vampiros.","Investigação",2],
+["Mestre de Amálgamas",4,"Uma vez por crônica, reduza em 5 XP o custo de uma Amálgama para a qual cumpra todos os requisitos."],
+["Ressonância Afinada",3,"Uma vez por noite, preserve uma ressonância após nova alimentação se a ficção justificar; após caça sem testemunhas, +2 para evitar rastros mundanos até o fim da cena.","Furtividade",2],
+["Reserva Hemática",3,"Uma vez por cena ao gastar Vitae em Disciplina de nível 1–3, role 1d20; com 16+, recupere 1 Vitae sem exceder o máximo."],
+["Autoridade de Sangue",4,"+2 em testes sociais para negociar com vampiros de Potência de Sangue superior; não controla decisões.","Persuasão",2],
+["Ritual de Preparação",3,"Após uma hora de preparação, +2 em um teste defensivo sobrenatural específico declarado antes da rolagem.","resist",2],
+["Instinto de Torpor",3,"Perceba sinais de vampiro em Torpor próximo quando houver indício sensorial ou sobrenatural."],
+["Vontade de Ferro",3,"Uma vez por sessão, Vantagem para resistir a efeito que o faria agir contra Convicção."],
+["Língua de Sangue",3,"+2 para identificar linhagem ou alteração sanguínea previamente estudada.","Ocultismo",2],
+["Mestre da Caçada",4,"Uma vez por noite, após sucesso em Localizar durante Caçada planejada, +2 em um teste da etapa seguinte.","Sobrevivência",2],
+["Rastreador de Vitae",3,"+2 para seguir trilha recente de sangue sobrenatural disponível para análise.","Sobrevivência",2],
+["Reserva de Vontade",3,"Uma vez por sessão, após defender Convicção significativamente e enfrentar consequência real, recupere 1 Força de Vontade."],
+["Pacto de Sangue Calculado",4,"Uma vez por crônica, negocie pacto sobrenatural com cláusulas e custo explícitos; não força consentimento."],
+["Sombra Ancestral",4,"Uma vez por cena, Vantagem em Furtividade contra observadores mundanos quando houver escuridão ou cobertura adequada.","Furtividade",2],
+["Carne Adaptativa",3,"Uma vez por cena, +2 para resistir a uma condição física específica escolhida.","resist",2],
+["Olhar da Última Memória",4,"Após Diablerie, faça teste adicional para tentar acessar fragmento relevante da memória final da vítima."],
+["Especialista em Alvos",3,"Escolha categoria de alvo; +2 em Investigação sobre hábitos e rotas, sem bônus universal de ataque.","Investigação",2],
+["Disciplina de Reserva",3,"Uma vez por sessão, após falhar em teste de Disciplina, gaste 1 Vitae para evitar complicação secundária plausível; a falha permanece."],
+["Sangue Insondável",4,"Uma vez por crônica, oculte uma característica específica da assinatura sanguínea de uma análise."],
+["Predador de Anciões",4,"Uma vez por cena, +2 para resistir à intimidação ou pressão social de vampiro com Potência de Sangue superior."]
+],
+flaws: [
+["Dívida",1,"Credor pode cobrar favor ou recurso em momento inconveniente.", "Dívida"],
+["Má Reputação",1,"Em círculos específicos, pessoas começam desconfiando de você."],
+["Dependência Social",1,"Negligenciar relação ou rotina humana importante gera complicações."],
+["Inimigo Menor",1,"Uma pessoa hostil atrapalha ocasionalmente seus planos."],
+["Refúgio Problemático",2,"Refúgio tem falha recorrente, localização ruim ou manutenção custosa."],
+["Segredo Perigoso",2,"Revelação pode custar aliados, recursos ou segurança."],
+["Inimigo Perigoso",2,"Pessoa ou grupo capaz persegue ou sabota você."],
+["Obrigação",2,"Facção, mentor ou aliado exige serviços periódicos."],
+["Laço Comprometedor",3,"Pessoa importante pode ser usada para pressionar você."],
+["Caçado",3,"Indivíduo ou organização investiga ativamente sua existência."],
+["Maldição Narrativa",3,"Condição sobrenatural recorrente exige escolhas difíceis."],
+["Sangue Instável",3,"Defeito especial; consulte a regra detalhada do livro. Defina a consequência mecânica com o Narrador."],
+["Sangue Chamativo",1,"Especialistas reconhecem sinais da sua assinatura sanguínea."],
+["Predador Compulsivo",2,"Oportunidade excepcional de caça exige teste para não abandonar objetivo imediato."],
+["Segredo de Diablerista",1,"Evidência ou testemunha pode associar você a Diablerie."],
+["Linhagem Marcada",2,"Certos vampiros reconhecem sua linhagem e recebem Vantagem para identificá-la."],
+["Fome Seletiva",2,"Alimentação eficaz depende de tipo de presa ou condição específica."],
+["Sangue Perigoso",3,"Seu sangue atrai colecionadores, ocultistas ou vampiros predatórios."],
+["Rival Profissional",1,"Rival disputa contratos, território ou reconhecimento."],
+["Nome Rastreável",1,"Registros ligam seu nome a atividades investigáveis."],
+["Refúgio Conhecido",2,"Pessoa ou facção conhece a localização aproximada do refúgio."],
+["Equipamento Essencial",1,"Ferramenta difícil de substituir; perdê-la causa complicação real."],
+["Código Rígido",1,"Convicção limita escolhas vantajosas em situações relevantes."],
+["Lealdade Exigente",2,"Aliado espera apoio mesmo quando compromete seus objetivos."],
+["Protetor de Mortal",2,"Mortal depende de você e pode virar alvo ou distração."],
+["Marca Visível",1,"Característica física ou sobrenatural chama atenção em momentos inadequados.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Voz Reveladora",1,"Voz ou padrão verbal é fácil de reconhecer por conhecidos.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Sono Vulnerável",2,"Descanso exige proteção ou preparação extra."],
+["Rastro Digital",1,"Atividade digital deixa padrões que podem ser ligados a você.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Método Previsível",1,"Inimigos que estudem sua abordagem recebem +2 para antecipá-la.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Orgulho",1,"Recuar diante de provocação pessoal pode exigir autocontrole.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Paranoia",1,"Informação incompleta pode fazer você desperdiçar tempo verificando ameaças.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Temperamento Explosivo",2,"Humilhação grave pode exigir teste contra Frenesi ou reação impulsiva."],
+["Dependência de Mentor",2,"Seu avanço depende de figura que pode impor condições ou retirar apoio."],
+["Favor Proibido",2,"Você deve serviço a facção que opera fora das regras da sua seita."],
+["Predador Territorial",2,"Ameaça ao território ou à caça provoca reação difícil de ignorar."],
+["Ressonância Necessária",1,"Certos benefícios contextuais exigem ressonância específica.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Vínculo Mal Resolvido",2,"Laço emocional antigo pode ser explorado ou prejudicar decisões."],
+["Fama Indesejada",2,"Você é reconhecido em meio que preferiria evitar."],
+["Inimigo de Linhagem",3,"Uma linhagem vampírica tem motivo para desconfiar ou perseguir você."],
+["Vítima Sobrevivente",2,"Alguém que escapou de você procura provas ou vingança."],
+["Ritual Arriscado",2,"Rituais exigem componentes difíceis ou deixam rastros."],
+["Vício Mortal",1,"Rotina ou comportamento humano gera custo, exposição ou conflito.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Território Contestável",2,"Seu domínio de caça é disputado por outro predador."],
+["Aparência Inquietante",1,"Humanos comuns têm desvantagem social quando sua aparência é relevante.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Promessa Inquebrável",2,"Quebrar promessa importante traz consequência previamente definida."],
+["Fardo de Sangue",3,"Seu sangue carrega condição que precisa ser administrada periodicamente."],
+["Caçada Marcada",2,"Facção sabe que você caça vampiros e pode preparar armadilhas."],
+["Assimilação Turbulenta",3,"Após Diablerie, ecos da vítima causam sonhos, lapsos ou conflitos."],
+["Fome de Poder",2,"Oportunidade rara de poder exige teste para não priorizá-la acima de compromissos."]
+],
+specialFlaws: [
+["Dívida de Sangue",2,"Vampiro poderoso exige pagamento por favor ou por ter poupado sua vida."],
+["Sangue Chamativo",1,"Análises sobrenaturais reconhecem sua assinatura sanguínea facilmente.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Predador Compulsivo",2,"Oportunidade excepcional de caça exige teste para não abandonar objetivo imediato."],
+["Inimigo Sobrenatural",2,"Criatura ou facção sobrenatural persegue você."],
+["Segredo de Diablerista",1,"Evidência concreta pode ligar você a uma Diablerie.","",0,"Custo normalizado provisoriamente; confirmar com Narrador."],
+["Linhagem Marcada",2,"Certos vampiros reconhecem sua linhagem."],
+["Fome Seletiva",2,"Alimentação eficaz depende de presa ou condição específica."],
+["Maldição de Sangue",3,"Seu sangue causa efeito recorrente perigoso definido com o Narrador."],
+["Sangue Perigoso",3,"Seu sangue atrai grupo disposto a capturá-lo ou explorá-lo."],
+["Ecos da Vítima",3,"Após Diablerie, memórias ou impulsos da vítima interferem em momentos críticos."],
+["Alma Contestada",4,"Assimilação de vítima poderosa desencadeia conflito interno recorrente."],
+["Fome de Diablerie",3,"Oportunidade plausível de diablerizar vampiro vulnerável exige teste contra obsessão."],
+["Marca de Aura",2,"Aura alterada por Diablerie é especialmente fácil de notar por investigadores experientes."],
+["Rastro de Caçador",2,"Métodos de caça a vampiros deixam padrão reconhecível."],
+["Vítima Ligada",3,"Vítima ou linhagem deixa vínculo sobrenatural que pode rastrear ou afetar você."],
+["Dívida de Assimilação",3,"Quem ajudou na assimilação exige contrapartida."],
+["Vontade Fragmentada",3,"Falhar na disputa de essência gera complicação mental adicional."],
+["Sangue Incompatível",3,"Assimilar certas linhagens pode causar efeitos colaterais temporários."],
+["Caçador de Diableristas",3,"Organização suspeita de você e investiga sua atividade."],
+["Predador Conhecido",2,"Vampiros locais sabem que você caça os seus e podem preparar armadilhas."],
+["Ritual Exigente",2,"Rituais precisam de componentes raros e tempo extra."],
+["Sede de Poder",2,"Oportunidade de aumentar Potência de Sangue ou aprender Disciplina exige teste para não abandonar compromissos."],
+["Refúgio Marcado",2,"Refúgio contém vestígio sobrenatural rastreável."],
+["Laço de Sangue Instável",3,"Laços ou pactos que mantém têm efeitos imprevisíveis sob estresse."],
+["Predador de Predadores",3,"Caçador especializado em vampiros escolheu você como alvo."],
+["Vítima Vingativa",2,"Sobrevivente, familiar ou aliado de vítima busca provas ou vingança."],
+["Fome Acelerada",3,"Esforço sobrenatural extremo pode aumentar Fome conforme regra acordada."],
+["Memória Intrusa",2,"Memória assimilada surge em momento inadequado e distrai ou expõe informação."],
+["Assinatura Hemática",2,"Feitiçaria de Sangue deixa vestígios identificáveis."],
+["Linhagem em Guerra",3,"Facções rivais da sua linhagem exigem que você tome partido."],
+["Juramento de Sangue",3,"Juramento sobrenatural limita ações e cobra preço quando quebrado."],
+["Poder Instável",3,"Uma Disciplina específica pode gerar complicação adicional em falha crítica."],
+["Preço da Sobrevivência",3,"Evitar Torpor por efeito especial gera condição persistente ou dívida narrativa."],
+["Herdeiro Indesejado",3,"Linhagem tenta controlar você por causa de legado que não deseja."],
+["Verdade Proibida",2,"Revelar segredo conhecido atrai retaliação."],
+["Caçada Contaminada",2,"Caçadas deixam sinais sobrenaturais que dificultam anonimato."],
+["Fome de Ressonância",2,"Você precisa de ressonância específica; outras alimentações podem não satisfazer."],
+["Mestre Hostil",2,"Mentor ensina, mas usa seu progresso para objetivos próprios."],
+["Rival de Potência",3,"Vampiro mais poderoso vê seu crescimento como ameaça."],
+["Pacto Incompleto",3,"Pacto sobrenatural deixou cláusula aberta que pode ser invocada contra você."],
+["Cicatriz da Alma",4,"Assimilação anterior deixou marca explorável por efeitos sobrenaturais."],
+["Voz da Besta",3,"Em Fome intensa, impulsos predatórios ficam perceptíveis a certos seres."],
+["Sangue de Valor",3,"Seu sangue vale muito para grupo que pode tentar capturá-lo vivo."],
+["Refém de Linhagem",4,"Membro importante da linhagem está sob controle inimigo."],
+["Diableria Inacabada",4,"Tentativa antiga deixou consequências sobrenaturais não resolvidas."],
+["Obsessão por Memórias",2,"Busca fragmentos de vítimas assimiladas mesmo quando isso expõe segredos."],
+["Fome de Ancião",4,"Obcecado por Vitae de vampiros com Potência de Sangue superior; resistir exige teste em oportunidades extraordinárias."],
+["Alma Ruidosa",4,"Especialistas e efeitos sobrenaturais percebem sua presença espiritual facilmente."],
+["Legado Maldito",4,"Poder herdado traz obrigação, inimigo ou custo recorrente central à crônica."]
+]};
+const V12_CATEGORIES = [
+ {key:'advantages',label:'Vantagens',points:'custo',budget:7},
+ {key:'specialAdvantages',label:'Vantagens especiais',points:'custo',budget:7},
+ {key:'flaws',label:'Defeitos',points:'ganho',budget:5},
+ {key:'specialFlaws',label:'Defeitos especiais',points:'ganho',budget:5}
+];
+function v12TraitId(category,name){return category+'::'+name}
+function v12TraitList(category){return (V12_TRAITS[category]||[]).map(function(a){return {name:a[0],cost:Number(a[1])||1,desc:a[2]||'',skill:a[3]||'',bonus:Number(a[4])||0,note:a[5]||''}})}
+function v12Selections(c,category){c.resources=c.resources||{};c.resources.traitSelections=c.resources.traitSelections||{};let a=c.resources.traitSelections[category];if(!Array.isArray(a))a=[];return a}
+function v12TraitByName(category,name){return v12TraitList(category).find(function(t){return t.name===name})}
+function v12TraitTotal(c,category){return v12Selections(c,category).reduce(function(sum,n){let t=v12TraitByName(category,n);return sum+(t?t.cost:0)},0)}
+function v12TraitSelectors(c,isWizard){
+ let html='<div class="v12-trait-suite">';
+ V12_CATEGORIES.forEach(function(cat){
+  let selected=v12Selections(c,cat.key),list=v12TraitList(cat.key),total=v12TraitTotal(c,cat.key);
+  html+='<section class="v12-trait-group" data-trait-category="'+cat.key+'"><header><div><h4>'+cat.label+'</h4><p>'+(cat.points==='custo'?'Pontos gastos':'Pontos recebidos')+': <b>'+total+'</b>'+(isWizard?' / orçamento de referência '+cat.budget:'')+'</p></div><button type="button" class="v12-add-trait" data-trait-add="'+cat.key+'" aria-label="Adicionar '+cat.label+'">＋</button></header>';
+  if(!selected.length)html+='<p class="v12-empty">Nenhuma opção selecionada. Use ＋ para adicionar.</p>';
+  selected.forEach(function(name,i){
+   let t=v12TraitByName(cat.key,name);
+   if(!t){html+='<div class="v12-selected"><span>Opção antiga não reconhecida: '+esc(name)+'</span><button type="button" data-trait-remove="'+cat.key+'" data-trait-index="'+i+'">×</button></div>';return}
+   html+='<div class="v12-selected"><div class="v12-picked"><strong>'+esc(t.name)+'</strong><span class="v12-cost">'+(cat.points==='custo'?'−':' +')+t.cost+' pt'+(t.note?' · revisar custo':'')+'</span><small>'+esc(t.desc)+'</small>'+(t.note?'<em>'+esc(t.note)+'</em>':'')+'</div><button type="button" class="v12-remove-trait" data-trait-remove="'+cat.key+'" data-trait-index="'+i+'" aria-label="Excluir '+esc(t.name)+'">×</button></div>';
+  });
+  html+='<div class="v12-trait-picker hidden" id="v12-picker-'+cat.key+'"><div class="v12-picker-head"><strong>Escolher '+cat.label+'</strong><button type="button" data-trait-close="'+cat.key+'">×</button></div><input type="search" data-trait-search="'+cat.key+'" placeholder="Buscar por nome ou efeito"><div class="v12-picker-list">';
+  list.forEach(function(t){
+   let already=selected.includes(t.name);
+   html+='<button type="button" class="v12-option '+(already?'selected':'')+'" data-trait-select="'+cat.key+'" data-trait-name="'+esc(t.name)+'" '+(already?'disabled':'')+'><span><strong>'+esc(t.name)+'</strong><small>'+(cat.points==='custo'?'Custo':'Concede')+': '+t.cost+' ponto(s)</small></span><span class="v12-option-hover"><b>'+esc(t.name)+'</b><span>'+esc(t.desc)+'</span>'+(t.note?'<em>'+esc(t.note)+'</em>':'')+'</span></button>';
+  });
+  html+='</div></div></section>';
+ });
+ html+='</div>';
+ return html;
+}
+function v12TraitSummary(c){return V12_CATEGORIES.map(function(cat){return cat.label+': '+v12TraitTotal(c,cat.key)+' pontos'}).join(' · ')}
+function v12LegacyNotes(c){let r=c.resources||{},old=[['Vantagens antigas',c.advantages],['Defeitos antigos',c.flaws],['Vantagens especiais antigas',r.specialAdvantages],['Defeitos especiais antigos',r.specialFlaws]] .filter(function(x){return String(x[1]||'').trim()});if(!old.length)return '';return '<details class="v12-legacy"><summary>Anotações antigas preservadas (migrar para seletores)</summary>'+old.map(function(x){return '<p><b>'+esc(x[0])+':</b> '+esc(x[1])+'</p>'}).join('')+'</details>'}
+function v12TraitSkillBonus(c,skill){
+ let total=0,catNames=Object.keys(V12_TRAITS);
+ catNames.forEach(function(cat){v12Selections(c,cat).forEach(function(name){let t=v12TraitByName(cat,name);if(!t||!t.skill||!t.bonus)return;
+  let skillNames=t.skill.split('/');if(skillNames.includes(skill))total+=t.bonus;
+ })});
+ return total;
+}
+function v12TraitRollModifier(c,kind){
+ let total=0;
+ Object.keys(V12_TRAITS).forEach(function(cat){v12Selections(c,cat).forEach(function(name){let t=v12TraitByName(cat,name);if(t&&t.skill===kind)total+=t.bonus})});
+ return total;
+}
+function v12TraitOpenPicker(cat){let el=document.getElementById('v12-picker-'+cat);if(el)el.classList.toggle('hidden');}
+document.addEventListener('click',function(e){
+ let b=e.target.closest('[data-trait-add]');if(b){v12TraitOpenPicker(b.dataset.traitAdd);return}
+ b=e.target.closest('[data-trait-close]');if(b){let el=document.getElementById('v12-picker-'+b.dataset.traitClose);if(el)el.classList.add('hidden');return}
+ b=e.target.closest('[data-trait-select]');if(b){let c=char(),cat=b.dataset.traitSelect,name=b.dataset.traitName,arr=v12Selections(c,cat);if(!arr.includes(name))arr.push(name);c.resources.traitSelections[cat]=arr;save();if(state.wizardDraft){state.wizardDraft.resources=state.wizardDraft.resources||{};state.wizardDraft.resources.traitSelections=clone(c.resources.traitSelections);wizRender()}else{renderFloatingSheet();wire();wireExtra()}return}
+ b=e.target.closest('[data-trait-remove]');if(b){let c=state.wizardDraft&&document.getElementById('wizard-root')?.contains(b)?state.wizardDraft:char(),cat=b.dataset.traitRemove,arr=v12Selections(c,cat);arr.splice(+b.dataset.traitIndex,1);c.resources.traitSelections[cat]=arr;save();if(c===state.wizardDraft)wizRender();else{renderFloatingSheet();wire();wireExtra()}return}
+});
+document.addEventListener('input',function(e){let el=e.target.closest('[data-trait-search]');if(!el)return;let q=el.value.toLocaleLowerCase('pt-BR'),cat=el.dataset.traitSearch;document.querySelectorAll('[data-trait-select="'+cat+'"]').forEach(function(b){b.classList.toggle('hidden',!((b.dataset.traitName+' '+b.textContent).toLocaleLowerCase('pt-BR').includes(q)))})});
+document.addEventListener('mouseover',function(e){let b=e.target.closest('.v12-option');if(b){b.classList.add('hovering')}});
+document.addEventListener('mouseout',function(e){let b=e.target.closest('.v12-option');if(b){b.classList.remove('hovering')}});
+const v12Style=document.createElement('style');
+v12Style.textContent='.v12-trait-suite{display:grid;gap:12px}.v12-trait-group{position:relative;border:1px solid #35303b;background:#101219;border-radius:12px;padding:11px}.v12-trait-group>header{display:flex;align-items:center;gap:10px}.v12-trait-group>header>div{flex:1}.v12-trait-group h4{margin:0;font:17px Georgia,serif}.v12-trait-group header p{font-size:11px;color:#a9abb7;margin:4px 0 0}.v12-add-trait{width:36px;height:36px;padding:0;font-size:22px;color:#f1c2c7;border-color:#71313d}.v12-empty{font-size:11px;color:#858995;margin:12px 0 4px}.v12-selected{display:flex;align-items:stretch;gap:8px;margin-top:8px;border:1px solid #34313b;background:#0b0d12;border-radius:9px;padding:8px}.v12-picked{min-width:0;flex:1}.v12-picked strong{font-size:12px}.v12-picked small{display:block;font-size:11px;color:#b7b8c3;margin-top:4px}.v12-picked em,.v12-option-hover em{display:block;color:#e1b96e;font-size:10px;margin-top:5px;font-style:normal}.v12-cost{float:right;color:#e1bb75;font-size:10px}.v12-remove-trait{width:30px;min-width:30px;padding:0;font-size:19px;color:#ff929b;align-self:center}.v12-trait-picker{position:absolute;z-index:150;top:58px;left:10px;right:10px;max-height:min(65vh,560px);display:flex;flex-direction:column;background:#14161e;border:1px solid #6b3944;border-radius:12px;box-shadow:0 20px 70px #000e;overflow:hidden}.v12-trait-picker.hidden{display:none}.v12-picker-head{display:flex;align-items:center;padding:9px 11px;border-bottom:1px solid #33313c}.v12-picker-head strong{margin-right:auto}.v12-picker-head button{padding:4px 9px}.v12-trait-picker>input{margin:8px;width:calc(100% - 16px)}.v12-picker-list{overflow:auto;padding:6px;display:grid;gap:4px}.v12-option{position:relative;display:flex;align-items:center;text-align:left;width:100%;padding:9px;background:#0c0e13;border:1px solid #292d38;border-radius:8px}.v12-option>span:first-child{display:flex;align-items:center;gap:10px;width:100%}.v12-option strong{font-size:12px}.v12-option small{margin-left:auto;color:#e1bb75;font-size:10px;white-space:nowrap}.v12-option.selected{opacity:.5}.v12-option-hover{display:none;position:fixed;z-index:300;left:min(54vw,720px);top:25vh;width:min(340px,40vw);padding:12px;background:#21141b;border:1px solid #99505e;border-radius:10px;box-shadow:0 12px 50px #000e;white-space:normal;color:#e6e2e7;pointer-events:none}.v12-option-hover b{display:block;margin-bottom:6px}.v12-option-hover span{font-size:11px;line-height:1.5}.v12-option.hovering .v12-option-hover{display:block}.v12-legacy{margin-top:12px;padding:10px;border:1px dashed #62515a;border-radius:8px;color:#bcb7c0;font-size:11px}.v12-legacy summary{cursor:pointer}.v12-legacy p{overflow-wrap:anywhere}@media(max-width:700px){.v12-trait-picker{position:fixed;top:12vh;left:8px;right:8px;max-height:75vh}.v12-option-hover{left:12px;top:18vh;width:calc(100vw - 24px)}}';
+document.head.appendChild(v12Style);
+const v12OriginalResources=v10Resources;
+v10Resources=function(c){
+ let res=c.resources||{},clan=CLANS[c.clan]||CLANS.Ventrue;
+ c.predator=v10PredatorKey(c.predator);
+ if(c.predator&&(!c.predatorBonusDiscipline||c.predatorBonusDiscipline!==V10_PREDATORS[c.predator]?.discipline)){v10SyncPredatorDiscipline(c);save(false)}
+ let p=V10_PREDATORS[c.predator];
+ let extra='';
+ if(p)extra='<h3>'+esc(p.title)+'</h3><p>'+esc(p.desc)+'</p><div class="predator-bonus-grid"><div><b>Habilidade</b><p>'+esc(p.skill)+'</p></div><div><b>Especialização</b><p>'+esc(p.spec)+'</p></div><div><b>Disciplina</b><p>'+esc(p.discipline)+' +1 nível</p></div><div><b>Estilo de caça</b><p>'+esc(p.style)+'</p></div></div>';
+ return '<div class="toolbar"><span class="scene-name">Recursos do personagem</span><span class="pill">Escolhas estruturadas e salvas</span></div><section class="resource-category clan-resource-card"><h4>Vantagens de Clã — '+esc(c.clan)+'</h4><ul class="clan-resource-list">'+clan.advantages.map(function(a){return '<li>'+esc(a)+'</li>'}).join('')+'</ul></section><section class="resource-category clan-resource-card curse-card"><h4>Maldição de Clã — '+esc(c.clan)+'</h4><p>'+esc(clan.curse)+'</p></section><section class="resource-category"><h4>Tipo de predador</h4><div class="field"><label>Escolha o tipo</label><select id="predator-select"><option value="">— Selecione —</option>'+Object.entries(V10_PREDATORS).map(function(pair){return '<option value="'+esc(pair[0])+'" '+(c.predator===pair[0]?'selected':'')+'>'+esc(pair[0])+' — '+esc(pair[1].title)+' ('+esc(pair[1].en)+')</option>'}).join('')+'</select></div>'+extra+'</section>'+v12TraitSelectors(c,false)+v12LegacyNotes(c)+'<section class="resource-category"><h4>Antecedentes e contatos</h4><textarea data-resource="backgrounds">'+esc(res.backgrounds||'')+'</textarea><h4>Especializações</h4><textarea data-resource="specializations">'+esc(res.specializations||c.specializations||'')+'</textarea><h4>Equipamento e outros recursos</h4><textarea data-resource="equipment">'+esc(res.equipment||c.equipment||'')+'</textarea><p class="rules-note">Pontos: '+esc(v12TraitSummary(c))+'. Bônus simples de Habilidade e rolagem são aplicados automaticamente quando compatíveis; efeitos narrativos, limitados por cena/sessão ou dependentes de situação devem ser ativados conforme a descrição.</p></section>';
+};
+const v12OriginalSheetDisciplines=sheetDisciplines;
+sheetDisciplines=function(c){let html=v12OriginalSheetDisciplines(c);return html.replace(/<div class="subhead">Vantagens e Defeitos<\/div>[\s\S]*$/,'')};
+const v12OriginalWizRender=wizRender;
+wizRender=function(){
+ v12OriginalWizRender();
+ const root=document.querySelector('#wizard-root .wizard-body');
+ if(!root||!state.wizardDraft||+state.wizardStep!==5)return;
+ let c=state.wizardDraft;c.resources=c.resources||{};
+ const old=root.querySelector('.form-grid');
+ if(old)old.outerHTML=v12TraitSelectors(c,true)+v12LegacyNotes(c);
+ const hint=root.querySelector('.wizard-hint');
+ if(hint)hint.innerHTML='Selecione opções nos quatro grupos. Vantagens gastam pontos; Defeitos concedem pontos. Custos marcados como provisórios devem ser confirmados pelo Narrador. Orçamento de referência: 7 pontos de Vantagens e até 5 pontos de Defeitos.';
+ const sum=root.querySelector('.wizard-summary');
+ if(sum)sum.innerHTML=v12TraitSummary(c);
+};
+const v12OldWizAdvance=wizAdvance;
+wizAdvance=function(){
+ if(+state.wizardStep===5&&state.wizardDraft){
+  let c=state.wizardDraft;
+  let a=v12TraitTotal(c,'advantages')+v12TraitTotal(c,'specialAdvantages'),f=v12TraitTotal(c,'flaws')+v12TraitTotal(c,'specialFlaws');
+  if(a>7||f>5){toast('Orçamento excedido: Vantagens até 7 pontos e Defeitos até 5.');return}
+ }
+ return v12OldWizAdvance();
+};
+const v12OldWizFinish=wizFinish;
+wizFinish=function(){
+ let c=state.wizardDraft;if(c){let a=v12TraitTotal(c,'advantages')+v12TraitTotal(c,'specialAdvantages'),f=v12TraitTotal(c,'flaws')+v12TraitTotal(c,'specialFlaws');c.creation=c.creation||{};c.creation.advantagePoints=a;c.creation.flawPoints=f;c.advantages='';c.flaws='';c.resources=c.resources||{};}
+ return v12OldWizFinish();
+};
+const v12OldSkillTest=rollSkillTest;
+rollSkillTest=function(skill,mode='normal'){
+ const c=char(),attr=SKILL_ATTR[skill]||'Sabedoria',prof=c.skillProf?.[skill]?(Number(c.prof)||0):0,pred=v10PredatorSkillBonus(c,skill),baseLevel=Number(c.skills?.[skill])||0,effectiveLevel=baseLevel+pred.skill,spec=(c.skillSpec?.[skill]?2:0)+pred.spec,trait=v12TraitSkillBonus(c,skill);
+ const r1=rollDie(20),r2=mode==='normal'?null:rollDie(20),die=mode==='adv'?Math.max(r1,r2):mode==='dis'?Math.min(r1,r2):r1,total=die+attrVal(c,attr)+effectiveLevel+prof+spec+trait;
+ addChat(c.name||'Personagem sem nome','teste de '+skill+': '+total,'roll','<div class="roll-result"><div class="chat-meta"><strong>'+esc(c.name||'Personagem sem nome')+'</strong><span>'+esc(skill)+'</span></div><div class="total">'+total+'</div><div class="detail">d20 '+r1+(r2!==null?' / '+r2+' ('+(mode==='adv'?'Vantagem':'Desvantagem')+')':'')+' + '+attr+' '+attrVal(c,attr)+' + '+skill+' '+effectiveLevel+(pred.skill?' (bônus predador +1)':'')+' + Prof. '+prof+' + Especialização '+spec+' + bônus de Vantagens '+trait+'</div></div>');
+};
+const v12OldRollCheck=rollCheck;
+rollCheck=function(){
+ let c=char(),a=$('#roll-attr').value,s=$('#roll-skill').value,prof=$('#roll-prof').checked?+c.prof:0,mod=getMod(),adv=$('#roll-adv').value,target=$('#roll-target').value===''?null:+$('#roll-target').value;
+ let r1=rollDie(20),r2=(adv==='adv'||adv==='dis')?rollDie(20):null,nat=adv==='adv'?Math.max(r1,r2):adv==='dis'?Math.min(r1,r2):r1;
+ let trait=s==='—'?0:v12TraitSkillBonus(c,s),ctx=a==='Destreza'&&s==='Iniciativa'?'initiative':s==='—'?'':s;
+ let extra=ctx==='initiative'?v12TraitRollModifier(c,'initiative'):0;
+ let total=nat+attrVal(c,a)+(s==='—'?0:(+c.skills[s]||0))+prof+mod+trait+extra;
+ let hungry=($('#roll-hunger')?.checked||state.globalHungerDice)&&+c.hunger>0?rollDie(20):null,comp=hungry!==null&&hungry<=+c.hunger;
+ let parts='d20 '+r1+(r2!==null?' / '+r2+' ('+(adv==='adv'?'Vantagem':'Desvantagem')+' → '+nat+')':'')+' + '+a+' '+attrVal(c,a)+(s!=='—'?' + '+s+' '+(+c.skills[s]||0):'')+(prof?' + Prof. '+prof:'')+(trait?' + Vantagens '+trait:'')+(extra?' + Vantagem de Iniciativa '+extra:'')+(mod?' '+(mod>0?'+':'')+mod:'');
+ let result='<div class="roll-result"><div class="chat-meta"><strong>'+esc(c.name)+'</strong><span>Teste</span></div><div class="total">'+total+'</div><div class="detail">'+esc(parts)+'</div>'+(target!==null?'<div class="detail">CD '+target+': <b style="color:'+(total>=target?'#69d59a':'#f18b92')+'">'+(total>=target?'SUCESSO':'FALHA')+'</b></div>':'')+(hungry!==null?'<div class="detail">Dado da Fome: '+hungry+' contra Fome '+c.hunger+' — <b>'+(comp?'COMPLICAÇÃO':'sem complicação')+'</b></div>':'')+'</div>';
+ addChat(c.name,'rolou um teste: '+total+(target!==null?' vs CD '+target+' ('+(total>=target?'sucesso':'falha')+')':'')+(comp?' • Complicação de Fome':''),'roll',result);if(comp)toast('Complicação de Fome! Registre a consequência narrativa.');
+};
+const v12OldInitiative=rollInitiative;
+rollInitiative=function(){let c=char(),r=rollDie(20),trait=v12TraitRollModifier(c,'initiative'),total=r+(+c.attributes.destreza||0)+(+c.prof||0)+trait,existing=state.initiative.find(x=>x.charId===c.id);if(existing)existing.score=total;else state.initiative.push({id:id(),charId:c.id,name:c.name,clan:c.clan,score:total});state.initiative.sort((a,b)=>b.score-a.score);state.activeInit=0;save();renderInitiative();addChat(c.name,'rolou iniciativa: '+r+' + Destreza '+c.attributes.destreza+' + Prof. '+c.prof+(trait?' + Vantagens '+trait:'')+' = '+total,'roll','<div class="roll-result"><div class="total">'+total+'</div><div class="detail">Iniciativa: d20 + Destreza + Proficiência + modificadores de Vantagens</div></div>')};
+
 render();if(sessionStorage.getItem('vtm_session'))connect();else showMultiplayerGate();
 })();
 </script></body></html>
