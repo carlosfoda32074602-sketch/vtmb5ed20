@@ -154,3 +154,91 @@ do $$ begin
     alter publication supabase_realtime add table public.vtm_room_members;
   end if;
 end $$;
+
+-- Character sheets are separate room records: players can save their own sheets,
+-- while the narrator can manage all sheets. This avoids whole-room snapshots
+-- overwriting another player's local character editor.
+create table if not exists public.vtm_room_characters (
+  room_id uuid not null references public.vtm_rooms(id) on delete cascade,
+  id text not null,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  updated_by uuid references auth.users(id) on delete set null,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  primary key (room_id, id)
+);
+alter table public.vtm_room_characters enable row level security;
+
+create policy "members can read room characters"
+on public.vtm_room_characters for select to authenticated
+using (public.vtm_is_room_member(room_id));
+
+create policy "owners and narrator can insert room characters"
+on public.vtm_room_characters for insert to authenticated
+with check (
+  public.vtm_is_room_member(room_id)
+  and (
+    owner_id = auth.uid()
+    or exists (
+      select 1 from public.vtm_room_members m
+      where m.room_id = vtm_room_characters.room_id
+        and m.user_id = auth.uid()
+        and m.role = 'narrator'
+    )
+  )
+);
+
+create policy "owners and narrator can update room characters"
+on public.vtm_room_characters for update to authenticated
+using (
+  public.vtm_is_room_member(room_id)
+  and (
+    owner_id = auth.uid()
+    or exists (
+      select 1 from public.vtm_room_members m
+      where m.room_id = vtm_room_characters.room_id
+        and m.user_id = auth.uid()
+        and m.role = 'narrator'
+    )
+  )
+)
+with check (
+  public.vtm_is_room_member(room_id)
+  and (
+    owner_id = auth.uid()
+    or exists (
+      select 1 from public.vtm_room_members m
+      where m.room_id = vtm_room_characters.room_id
+        and m.user_id = auth.uid()
+        and m.role = 'narrator'
+    )
+  )
+);
+
+create policy "owners and narrator can delete room characters"
+on public.vtm_room_characters for delete to authenticated
+using (
+  public.vtm_is_room_member(room_id)
+  and (
+    owner_id = auth.uid()
+    or exists (
+      select 1 from public.vtm_room_members m
+      where m.room_id = vtm_room_characters.room_id
+        and m.user_id = auth.uid()
+        and m.role = 'narrator'
+    )
+  )
+);
+
+grant select, insert, update, delete on public.vtm_room_characters to authenticated;
+
+do $$ begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime'
+      and schemaname='public'
+      and tablename='vtm_room_characters'
+  ) then
+    alter publication supabase_realtime add table public.vtm_room_characters;
+  end if;
+end $$;
