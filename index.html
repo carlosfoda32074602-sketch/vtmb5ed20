@@ -931,7 +931,7 @@ function v12Selections(c,category){c.resources=c.resources||{};c.resources.trait
 function v12TraitByName(category,name){return v12TraitList(category).find(function(t){return t.name===name})}
 function v12TraitTotal(c,category){return v12Selections(c,category).reduce(function(sum,n){let t=v12TraitByName(category,n);return sum+(t?t.cost:0)},0)}
 function v12TraitSelectors(c,isWizard){
- let html='<div class="v12-trait-suite">';
+ let html='<div class="v12-budget-strip"><b>Vantagens:</b> '+(v12TraitTotal(c,'advantages')+v12TraitTotal(c,'specialAdvantages'))+'/7 pontos gastos <span>·</span> <b>Defeitos:</b> '+(v12TraitTotal(c,'flaws')+v12TraitTotal(c,'specialFlaws'))+'/5 pontos recebidos</div><div class="v12-trait-suite">';
  V12_CATEGORIES.forEach(function(cat){
   let selected=v12Selections(c,cat.key),list=v12TraitList(cat.key),total=v12TraitTotal(c,cat.key);
   html+='<section class="v12-trait-group" data-trait-category="'+cat.key+'"><header><div><h4>'+cat.label+'</h4><p>'+(cat.points==='custo'?'Pontos gastos':'Pontos recebidos')+': <b>'+total+'</b>'+(isWizard?'':'')+'</p></div><button type="button" class="v12-add-trait" data-trait-add="'+cat.key+'" aria-label="Adicionar '+cat.label+'">＋</button></header>';
@@ -951,6 +951,7 @@ function v12TraitSelectors(c,isWizard){
  html+='</div>';
  return html;
 }
+function v12UpdateWizardPoints(c){if(!c||!c.creation)return;c.creation.advantagePoints=v12TraitTotal(c,'advantages')+v12TraitTotal(c,'specialAdvantages');c.creation.flawPoints=v12TraitTotal(c,'flaws')+v12TraitTotal(c,'specialFlaws')}
 function v12TraitSummary(c){return 'Vantagens: '+(v12TraitTotal(c,'advantages')+v12TraitTotal(c,'specialAdvantages'))+'/7 pontos · Defeitos: '+(v12TraitTotal(c,'flaws')+v12TraitTotal(c,'specialFlaws'))+'/5 pontos';}
 function v12LegacyNotes(c){let r=c.resources||{},old=[['Vantagens antigas',c.advantages],['Defeitos antigos',c.flaws],['Vantagens especiais antigas',r.specialAdvantages],['Defeitos especiais antigos',r.specialFlaws]] .filter(function(x){return String(x[1]||'').trim()});if(!old.length)return '';return '<details class="v12-legacy"><summary>Anotações antigas preservadas (migrar para seletores)</summary>'+old.map(function(x){return '<p><b>'+esc(x[0])+':</b> '+esc(x[1])+'</p>'}).join('')+'</details>'}
 function v12TraitSkillBonus(c,skill){
@@ -963,8 +964,8 @@ function v12TraitOpenPicker(cat){let el=document.getElementById('v12-picker-'+ca
 document.addEventListener('click',function(e){
  let b=e.target.closest('[data-trait-add]');if(b){v12TraitOpenPicker(b.dataset.traitAdd);return}
  b=e.target.closest('[data-trait-close]');if(b){let el=document.getElementById('v12-picker-'+b.dataset.traitClose);if(el)el.classList.add('hidden');return}
- b=e.target.closest('[data-trait-select]');if(b){let c=(state.wizardDraft&&document.getElementById('wizard-root')?.contains(b))?state.wizardDraft:char(),cat=b.dataset.traitSelect,name=b.dataset.traitName,arr=v12Selections(c,cat);if(!arr.includes(name))arr.push(name);c.resources.traitSelections[cat]=arr;save();if(state.wizardDraft){state.wizardDraft.resources=state.wizardDraft.resources||{};state.wizardDraft.resources.traitSelections=clone(c.resources.traitSelections);wizRender()}else{renderFloatingSheet();wire();wireExtra()}return}
- b=e.target.closest('[data-trait-remove]');if(b){let c=state.wizardDraft&&document.getElementById('wizard-root')?.contains(b)?state.wizardDraft:char(),cat=b.dataset.traitRemove,arr=v12Selections(c,cat);arr.splice(+b.dataset.traitIndex,1);c.resources.traitSelections[cat]=arr;save();if(c===state.wizardDraft)wizRender();else{renderFloatingSheet();wire();wireExtra()}return}
+ b=e.target.closest('[data-trait-select]');if(b){let c=(state.wizardDraft&&document.getElementById('wizard-root')?.contains(b))?state.wizardDraft:char(),cat=b.dataset.traitSelect,name=b.dataset.traitName,arr=v12Selections(c,cat);if(!arr.includes(name))arr.push(name);c.resources.traitSelections[cat]=arr;if(c===state.wizardDraft)v12UpdateWizardPoints(c);save();if(c===state.wizardDraft){state.wizardDraft.resources=state.wizardDraft.resources||{};state.wizardDraft.resources.traitSelections=clone(c.resources.traitSelections);wizRender()}else{renderFloatingSheet();wire();wireExtra()}return}
+ b=e.target.closest('[data-trait-remove]');if(b){let c=state.wizardDraft&&document.getElementById('wizard-root')?.contains(b)?state.wizardDraft:char(),cat=b.dataset.traitRemove,arr=v12Selections(c,cat);arr.splice(+b.dataset.traitIndex,1);c.resources.traitSelections[cat]=arr;if(c===state.wizardDraft)v12UpdateWizardPoints(c);save();if(c===state.wizardDraft)wizRender();else{renderFloatingSheet();wire();wireExtra()}return}
 });
 document.addEventListener('change',function(e){let el=e.target.closest('[data-trait-active]');if(!el)return;let c=(state.wizardDraft&&document.getElementById('wizard-root')?.contains(el))?state.wizardDraft:char(),cat=el.dataset.traitActive,name=el.dataset.traitActiveName;c.resources=c.resources||{};c.resources.traitActive=c.resources.traitActive||{};c.resources.traitActive[cat+'::'+name]=el.checked;save();if(c===state.wizardDraft)wizRender();else{renderFloatingSheet();wire();wireExtra()}});
 document.addEventListener('input',function(e){let el=e.target.closest('[data-trait-search]');if(!el)return;let q=el.value.toLocaleLowerCase('pt-BR'),cat=el.dataset.traitSearch;document.querySelectorAll('[data-trait-select="'+cat+'"]').forEach(function(b){b.classList.toggle('hidden',!((b.dataset.traitName+' '+b.textContent).toLocaleLowerCase('pt-BR').includes(q)))})});
