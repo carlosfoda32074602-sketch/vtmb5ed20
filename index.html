@@ -309,7 +309,7 @@ function renderSheet(c,d){
  <div class="sheet-actions"><button data-char-init="${c.id}">Rolar iniciativa</button><button id="sheet-add-token">Adicionar token</button><button id="sheet-remove-token">Remover token</button><label class="sheet-toggle"><input type="checkbox" id="sheet-advantage" ${state.rollMode==='adv'?'checked':''}> Vantagem</label><label class="sheet-toggle"><input type="checkbox" id="sheet-disadvantage" ${state.rollMode==='dis'?'checked':''}> Desvantagem</label><label class="sheet-hunger-toggle"><input type="checkbox" id="sheet-global-hunger" ${state.globalHungerDice?'checked':''}><span><b>Dado de Fome</b><small style="display:block;font-size:9px;color:#999">Dado de Fome automático</small></span></label><label class="move-limit-field">Deslocamento (m)<input id="movement-limit" type="number" min="0" max="60" step="1" value="${Number(c.movementLimit??9)}"></label><label class="color-field">Cor do token <input type="color" id="token-border-color" value="${c.tokenColor||CLANS[c.clan]?.color||'#9e1c2b'}"></label><span class="initiative-pill">Iniciativa: ${c.initiative??'—'}</span></div>
  <div class="sheet-tabs">${tabs.map(t=>`<button data-tab="${t}" class="${tab===t?'active':''}">${t}</button>`).join('')}</div><div class="sheet-content">${tab==='Permissões'&&canManagePermissions?sheetPermissions(c):tab==='Atributos'?sheetAttributes(c,d):tab==='Habilidades'?sheetSkills(c):tab==='Disciplinas'?sheetDisciplines(c):tab==='Detalhes'?sheetDetails(c):tab==='Recursos'?v10Resources(c):tab==='Permissões'?'<div class="subhead">Permissões</div><p>Esta ficha não está disponível para gerenciar permissões nesta sala. Se você acabou de criá-la, recarregue a sala para sincronizar a propriedade da ficha.</p>':sheetCombat(c)}</div></section>`
 }
-function sheetCombat(c){if(!Array.isArray(c.attacks))c.attacks=[];if(!Array.isArray(c.savedRolls))c.savedRolls=[];const clan=CLANS[c.clan]||CLANS.Ventrue,clanRolls=V10_CLAN_ROLLS[c.clan]||[];return `<section class="resource-category clan-rolls"><div class="subhead">Rolagens e poderes do Clã: ${esc(c.clan)}</div><p class="rules-note">Esta lista é gerada a partir do Clã atual. Ao mudar o Clã, os botões antigos desaparecem e os novos são carregados automaticamente; não são gravados como ataques personalizados.</p><div class="clan-roll-grid">${clanRolls.map(x=>`<article class="saved-item clan-roll-card"><div class="saved-item-head"><strong>${esc(x.name)}</strong><span class="pill">${esc(x.attr)} + ${esc(x.skill)}${x.mod?' · +'+x.mod:''}${x.adv==='adv'?' · Vantagem':''}</span></div><p>${esc(x.note||'')}</p><div class="mini-actions"><button data-clan-power-roll="${esc(x.id)}" class="primary">Rolar / Ativar</button></div></article>`).join('')||'<p class="rules-note">Este Clã não possui rolagens automatizadas configuradas.</p>'}</div><div class="rules-note">Efeitos narrativos, limites por cena e resultados condicionais continuam sujeitos às regras e à decisão do Narrador. Os botões calculam o teste com os valores atuais da ficha.</div></section><div class="subhead">Ataques salvos</div>
+function sheetCombat(c){if(!Array.isArray(c.attacks))c.attacks=[];if(!Array.isArray(c.savedRolls))c.savedRolls=[];const clan=CLANS[c.clan]||CLANS.Ventrue,clanRolls=V10_CLAN_ROLLS[c.clan]||[];return `<section class="resource-category clan-rolls"><div class="subhead">Rolagens e poderes do Clã: ${esc(c.clan)}</div><p class="rules-note">Esta lista é gerada a partir do Clã atual. Ao mudar o Clã, os botões antigos desaparecem e os novos são carregados automaticamente; não são gravados como ataques personalizados.</p><div class="clan-roll-grid">${clanRolls.map(x=>`<article class="saved-item clan-roll-card"><div class="saved-item-head"><strong>${esc(x.name)}</strong><span class="pill">${esc(x.attr)} + ${esc(x.skill)}${x.extraSkill?' + '+esc(x.extraSkill):''}${x.skillMultiplier?' × '+x.skillMultiplier:''}${x.mod?' · +'+x.mod:''}${x.adv==='adv'?' · Vantagem':''}</span></div><p>${esc(x.note||'')}</p><div class="mini-actions"><button data-clan-power-roll="${esc(x.id)}" class="primary">Rolar / Ativar</button></div></article>`).join('')||'<p class="rules-note">Este Clã não possui rolagens automatizadas configuradas.</p>'}</div><div class="rules-note">Efeitos narrativos, limites por cena e resultados condicionais continuam sujeitos às regras e à decisão do Narrador. Os botões calculam o teste com os valores atuais da ficha.</div></section><div class="subhead">Ataques salvos</div>
 <div class="inline-form"><div class="form-grid">
 <div class="field"><label>Nome do ataque</label><input id="attack-name" placeholder="Ex.: Garras do Kagune"></div>
 <div class="field"><label>Atributo</label><select id="attack-attr">${ATTRS.map(a=>`<option ${a==='Força'?'selected':''}>${a}</option>`).join('')}</select></div>
@@ -601,7 +601,7 @@ function v10PredatorSkillBonus(c,skill){const p=V10_PREDATORS[v10PredatorKey(c.p
 const V10_CLAN_ROLLS={
 'Tremere':[
 {id:'tremere-hematica',name:'Erudição Hemática',attr:'Inteligência',skill:'Ocultismo',mod:2,note:'+2 de Erudição Hemática aplicado a este teste ligado a sangue vampírico, Feitiçaria de Sangue, rituais ou fenômenos estudados.'},
-{id:'tremere-vitae',name:'Especialista em Vitae',attr:'Inteligência',skill:'Investigação',mod:0,note:'Investigue informações relevantes; o Narrador pode enquadrar o teste com Ocultismo ou Sobrenatural conforme a pista.'},
+{id:'tremere-vitae-ocultismo',name:'Especialista em Vitae — Ocultismo',attr:'Inteligência',skill:'Investigação',extraSkill:'Ocultismo',mod:0,note:'Investigação + Ocultismo para extrair informações relevantes.'},{id:'tremere-vitae-sobrenatural',name:'Especialista em Vitae — Sobrenatural',attr:'Inteligência',skill:'Investigação',extraSkill:'Sobrenatural',mod:0,note:'Investigação + Sobrenatural para extrair informações relevantes.'},
 {id:'tremere-intuicao',name:'Conectado ao Sobrenatural — Intuição',attr:'Sabedoria',skill:'Sobrenatural',mod:0,note:'Use para interpretar intuições sobre fenômenos sobrenaturais.'},
 {id:'tremere-interpretacao',name:'Conectado ao Sobrenatural — Interpretação',attr:'Inteligência',skill:'Ocultismo',mod:0,note:'Use para interpretar fenômenos sobrenaturais.'}
 ],
@@ -616,7 +616,7 @@ const V10_CLAN_ROLLS={
 {id:'toreador-fascinio-persuasao',name:'Fascínio — Persuasão',attr:'Carisma',skill:'Persuasão',mod:0,note:'Uma vez por cena. Sucesso concede Vantagem no próximo teste social; resultado 5 acima da CD estende o efeito pela cena.'},
 {id:'toreador-inspiradora-persuasao',name:'Presença Inspiradora — Persuasão',attr:'Carisma',skill:'Persuasão',mod:2,note:'+2 para charme, sedução, emoção ou arte.'},
 {id:'toreador-inspiradora-performance',name:'Presença Inspiradora — Performance',attr:'Carisma',skill:'Performance',mod:2,note:'+2 para charme, sedução, emoção ou arte.'},
-{id:'toreador-olhar',name:'Olhar Artístico',attr:'Sabedoria',skill:'Percepção',mod:0,note:'Teste para perceber detalhes estéticos e sutis; a vantagem do clã dobra Percepção para esse tipo de detalhe.'}
+{id:'toreador-olhar',name:'Olhar Artístico',attr:'Sabedoria',skill:'Percepção',skillMultiplier:2,mod:0,note:'Percepção dobrada para identificar detalhes estéticos e sutis.'}
 ],
 'Ventrue':[
 {id:'ventrue-autoridade-lideranca',name:'Autoridade Natural — Liderança',attr:'Carisma',skill:'Liderança',mod:2,note:'+2 para comando e negociação.'},
@@ -626,31 +626,31 @@ const V10_CLAN_ROLLS={
 ],
 'Malkavian':[
 {id:'malkavian-voz',name:'Voz do Inanimado',attr:'Sabedoria',skill:'Sobrenatural',mod:0,note:'Uma vez por cena: faça uma pergunta a um objeto. O Narrador determina a resposta.'},
-{id:'malkavian-premonicao',name:'Premonição — Registrar teste de rerrolagem',attr:'Sabedoria',skill:'Sobrenatural',mod:0,note:'Uma vez por cena, permite rerrolar um teste falho. Use este botão para registrar a leitura sobrenatural; para rerrolar outro teste, volte ao teste original.'}
+{}
 ],
 'Gangrel':[
 {id:'gangrel-predador-percepcao',name:'Instinto Predador — Percepção',attr:'Sabedoria',skill:'Percepção',mod:2,note:'+2 para rastrear, perseguir ou evitar criaturas.'},
 {id:'gangrel-predador-sobrevivencia',name:'Instinto Predador — Sobrevivência',attr:'Sabedoria',skill:'Sobrevivência',mod:2,note:'+2 para rastrear, perseguir ou evitar criaturas.'},
 {id:'gangrel-predador-furtividade',name:'Instinto Predador — Furtividade',attr:'Destreza',skill:'Furtividade',mod:2,note:'+2 para rastrear, perseguir ou evitar criaturas.'},
 {id:'gangrel-sentidos',name:'Sentidos da Besta',attr:'Sabedoria',skill:'Sobrenatural',mod:0,note:'Uma vez por cena: detectar criaturas, rastros ou perigos anormais.'},
-{id:'gangrel-cacador',name:'Caçador Implacável — Ataque contra alvo ferido',attr:'Força',skill:'Briga',mod:0,adv:'adv',note:'Ao acertar um alvo ferido, a vantagem concede Vantagem no próximo ataque ou em Percepção contra ele. Este botão prepara a rolagem com Vantagem; use apenas se a condição estiver ativa.'}
+{id:'gangrel-cacador',name:'Caçador Implacável — Próximo ataque',attr:'Força',skill:'Briga',mod:0,adv:'adv',note:'Use após acertar um alvo ferido, para aplicar Vantagem ao próximo ataque contra ele. Também pode ser usada em Percepção contra esse alvo por meio de um teste manual.'}
 ],
 'Nosferatu':[
 {id:'nosferatu-sombra-furtividade',name:'Sombra dos Esgotos — Furtividade',attr:'Destreza',skill:'Furtividade',mod:2,note:'+2 para esconder-se, infiltrar-se e obter informação.'},
 {id:'nosferatu-sombra-crime',name:'Sombra dos Esgotos — Crime',attr:'Destreza',skill:'Crime',mod:2,note:'+2 para esconder-se, infiltrar-se e obter informação.'},
 {id:'nosferatu-sombra-investigacao',name:'Sombra dos Esgotos — Investigação',attr:'Inteligência',skill:'Investigação',mod:2,note:'+2 para esconder-se, infiltrar-se e obter informação.'},
-{id:'nosferatu-sentidos',name:'Sentidos Aguçados',attr:'Sabedoria',skill:'Percepção',mod:0,note:'Uma vez por cena, faça Percepção + Sobrenatural para detectar sinais relevantes.'},
+{id:'nosferatu-sentidos',name:'Sentidos Aguçados',attr:'Sabedoria',skill:'Percepção',extraSkill:'Sobrenatural',mod:0,note:'Uma vez por cena, faça Percepção + Sobrenatural para detectar sinais relevantes.'},
 {id:'nosferatu-segredos',name:'Mestre dos Segredos',attr:'Inteligência',skill:'Investigação',mod:0,note:'Após obter informação, use o resultado para revelar uma informação oculta relevante.'},
 {id:'nosferatu-sombras',name:'Desaparecer nas Sombras',attr:'Destreza',skill:'Furtividade',mod:0,note:'Uma vez por cena, como reação e fora da visão direta, teste para ficar não detectado.'}
 ]};
 function v10RollClanPower(key){
- const c=char(),cfg=(V10_CLAN_ROLLS[c.clan]||[]).find(x=>x.id===key);
- if(!cfg)return;
+ const c=char(),cfg=(V10_CLAN_ROLLS[c.clan]||[]).find(x=>x.id===key);if(!cfg)return;
  const r1=rollDie(20),mode=cfg.adv||'normal',r2=mode==='normal'?null:rollDie(20),die=mode==='adv'?Math.max(r1,r2):mode==='dis'?Math.min(r1,r2):r1;
- const skill=Number(c.skills?.[cfg.skill])||0,prof=c.skillProf?.[cfg.skill]?(Number(c.prof)||0):(Number(c.prof)||0),spec=c.skillSpec?.[cfg.skill]?2:0,mod=Number(cfg.mod)||0;
- const total=die+attrVal(c,cfg.attr)+skill+prof+spec+mod;
- const details='d20 '+r1+(r2!==null?' / '+r2+' ('+(mode==='adv'?'Vantagem':'Desvantagem')+' → '+die+')':'')+' + '+cfg.attr+' '+attrVal(c,cfg.attr)+' + '+cfg.skill+' '+skill+' + Proficiência '+prof+' + Especialização '+spec+(mod?' + Modificador '+mod:'');
- addChat(c.name||'Personagem sem nome',cfg.name+': '+total,'roll',`<div class="roll-result"><div class="chat-meta"><strong>${esc(c.name||'Personagem sem nome')}</strong><span>${esc(cfg.name)}</span></div><div class="total">${total}</div><div class="detail">${esc(details)}</div><div class="detail">${esc(cfg.note||'')}</div></div>`);
+ const skill=Number(c.skills?.[cfg.skill])||0,mult=Number(cfg.skillMultiplier)||1,extra=cfg.extraSkill||'',extraValue=extra?(Number(c.skills?.[extra])||0):0;
+ const prof=c.skillProf?.[cfg.skill]?(Number(c.prof)||0):0,spec=c.skillSpec?.[cfg.skill]?2:0,extraProf=extra&&c.skillProf?.[extra]?(Number(c.prof)||0):0,extraSpec=extra&&c.skillSpec?.[extra]?2:0,mod=Number(cfg.mod)||0;
+ const total=die+attrVal(c,cfg.attr)+skill*mult+extraValue+prof+spec+extraProf+extraSpec+mod;
+ const parts='d20 '+r1+(r2!==null?' / '+r2+' ('+(mode==='adv'?'Vantagem':'Desvantagem')+' → '+die+')':'')+' + '+cfg.attr+' '+attrVal(c,cfg.attr)+' + '+cfg.skill+' '+skill+(mult!==1?' × '+mult:'')+(extra?' + '+extra+' '+extraValue:'')+' + Proficiência '+prof+' + Especialização '+spec+(extra?' + Prof. '+extraProf+' / Esp. '+extraSpec:'')+(mod?' + Modificador '+mod:'');
+ addChat(c.name||'Personagem sem nome',cfg.name+': '+total,'roll',`<div class="roll-result"><div class="chat-meta"><strong>${esc(c.name||'Personagem sem nome')}</strong><span>${esc(cfg.name)}</span></div><div class="total">${total}</div><div class="detail">${esc(parts)}</div><div class="detail">${esc(cfg.note||'')}</div></div>`);
 }
 function v10Resources(c){
  const res=c.resources||{},list=[['Vantagens','advantages','Vantagens compradas ou recebidas.'],['Vantagens especiais','specialAdvantages','Vantagens especiais e poderes narrativos.'],['Defeitos','flaws','Defeitos e complicações.'],['Defeitos especiais','specialFlaws','Defeitos especiais.'],['Antecedentes e contatos','backgrounds','Aliados, contatos, recursos, rebanho, fama, influência e retentores.'],['Especializações','specializations','Especializações e focos de habilidade.'],['Equipamento e outros recursos','equipment','Equipamento, itens, favores e recursos diversos.']];
