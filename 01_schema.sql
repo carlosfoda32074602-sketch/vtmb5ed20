@@ -178,11 +178,11 @@ on public.vtm_room_characters for insert to authenticated
 with check (
   public.vtm_is_room_member(room_id)
   and (
-    owner_id = auth.uid()
+    owner_id = (select auth.uid())
     or exists (
       select 1 from public.vtm_room_members m
       where m.room_id = vtm_room_characters.room_id
-        and m.user_id = auth.uid()
+        and m.user_id = (select auth.uid())
         and m.role = 'narrator'
     )
   )
@@ -193,11 +193,11 @@ on public.vtm_room_characters for update to authenticated
 using (
   public.vtm_is_room_member(room_id)
   and (
-    owner_id = auth.uid()
+    owner_id = (select auth.uid())
     or exists (
       select 1 from public.vtm_room_members m
       where m.room_id = vtm_room_characters.room_id
-        and m.user_id = auth.uid()
+        and m.user_id = (select auth.uid())
         and m.role = 'narrator'
     )
   )
@@ -205,11 +205,11 @@ using (
 with check (
   public.vtm_is_room_member(room_id)
   and (
-    owner_id = auth.uid()
+    owner_id = (select auth.uid())
     or exists (
       select 1 from public.vtm_room_members m
       where m.room_id = vtm_room_characters.room_id
-        and m.user_id = auth.uid()
+        and m.user_id = (select auth.uid())
         and m.role = 'narrator'
     )
   )
@@ -220,11 +220,11 @@ on public.vtm_room_characters for delete to authenticated
 using (
   public.vtm_is_room_member(room_id)
   and (
-    owner_id = auth.uid()
+    owner_id = (select auth.uid())
     or exists (
       select 1 from public.vtm_room_members m
       where m.room_id = vtm_room_characters.room_id
-        and m.user_id = auth.uid()
+        and m.user_id = (select auth.uid())
         and m.role = 'narrator'
     )
   )
@@ -242,3 +242,6 @@ do $$ begin
     alter publication supabase_realtime add table public.vtm_room_characters;
   end if;
 end $$;
+
+create index if not exists vtm_room_characters_owner_idx on public.vtm_room_characters(owner_id);
+create index if not exists vtm_room_characters_updated_by_idx on public.vtm_room_characters(updated_by);
