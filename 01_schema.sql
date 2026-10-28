@@ -245,3 +245,133 @@ end $$;
 
 create index if not exists vtm_room_characters_owner_idx on public.vtm_room_characters(owner_id);
 create index if not exists vtm_room_characters_updated_by_idx on public.vtm_room_characters(updated_by);
+
+
+-- Per-character access control. Keep character data in its own table rather than
+-- exposing private sheets in the shared room snapshot.
+create table if not exists public.vtm_character_permissions (
+  room_id uuid not null references public.vtm_rooms(id) on delete cascade,
+  character_id text not null,
+  grantee_id uuid not null references auth.users(id) on delete cascade,
+  granted_by uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (room_id, character_id, grantee_id),
+  foreign key (room_id, character_id)
+    references public.vtm_room_characters(room_id, id) on delete cascade
+);
+alter table public.vtm_character_permissions enable row level security;
+
+create or replace function public.vtm_can_manage_character(p_room_id uuid, p_character_id text)
+returns boolean
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.vtm_room_characters c
+    join public.vtm_room_members m on m.room_id = c.room_id and m.user_id = auth.uid()
+    where c.room_id = p_room_id
+      and c.id = p_character_id
+      and (c.owner_id = auth.uid() or m.role = 'narrator')
+  );
+$$;
+
+create or replace function public.vtm_can_access_character(p_room_id uuid, p_character_id text)
+returns boolean
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select public.vtm_can_manage_character(p_room_id, p_character_id)
+    or exists (
+      select 1
+      from public.vtm_character_permissions p
+      join public.vtm_room_members m on m.room_id = p.room_id and m.user_id = auth.uid()
+      where p.room_id = p_room_id
+        and p.character_id = p_character_id
+        and p.grantee_id = auth.uid()
+    );
+$$;
+
+revoke all on function public.vtm_can_manage_character(uuid,text) from public, anon;
+revoke all on function public.vtm_can_access_character(uuid,text) from public, anon;
+grant execute on function public.vtm_can_manage_character(uuid,text) to authenticated;
+grant execute on function public.vtm_can_access_character(uuid,text) to authenticated;
+
+-- Replace permissive legacy policies for these tables with explicit access checks.
+do $$
+declare p record;
+begin
+  for p in
+    select schemaname, tablename, policyname
+    from pg_policies
+    where schemaname = 'public'
+      and tablename in ('vtm_room_characters', 'vtm_character_permissions')
+  loop
+    execute format('drop policy if exists %I on %I.%I', p.policyname, p.schemaname, p.tablename);
+  end loop;
+end $$;
+
+create policy "character read requires explicit access"
+on public.vtm_room_characters for select to authenticated
+using (public.vtm_can_access_character(room_id, id));
+
+create policy "owner or narrator creates character"
+on public.vtm_room_characters for insert to authenticated
+with check (
+  public.vtm_is_room_member(room_id)
+  and (
+    owner_id = auth.uid()
+    or exists (
+      select 1 from public.vtm_room_members m
+      where m.room_id = vtm_room_characters.room_id
+        and m.user_id = auth.uid()
+        and m.role = 'narrator'
+    )
+  )
+);
+
+create policy "owner or narrator updates character"
+on public.vtm_room_characters for update to authenticated
+using (public.vtm_can_manage_character(room_id, id))
+with check (
+  public.vtm_is_room_member(room_id)
+  and (
+    owner_id = auth.uid()
+    or exists (
+      select 1 from public.vtm_room_members m
+      where m.room_id = vtm_room_characters.room_id
+        and m.user_id = auth.uid()
+        and m.role = 'narrator'
+    )
+  )
+);
+
+create policy "owner or narrator deletes character"
+on public.vtm_room_characters for delete to authenticated
+using (public.vtm_can_manage_character(room_id, id));
+
+create policy "permission rows visible to owner narrator or recipient"
+on public.vtm_character_permissions for select to authenticated
+using (
+  grantee_id = auth.uid()
+  or public.vtm_can_manage_character(room_id, character_id)
+);
+
+create policy "owner or narrator grants permission"
+on public.vtm_character_permissions for insert to authenticated
+with check (
+  granted_by = auth.uid()
+  and public.vtm_can_manage_character(room_id, character_id)
+  and exists (
+    select 1 from public.vtm_room_members m
+    where m.room_id = vtm_character_permissions.room_id
+      and m.user_id = vtm_character_permissions.grantee_id
+      and m.role = 'player'
+  )
+);
+
+create policy "owner or narrator revokes permission"
+on public.vtm_character_permissions for delete to authenticated
+using (public.vtm_can_manage_character(room_id, character_id));
+
+grant select, insert, delete on public.vtm_character_permissions to authenticated;
