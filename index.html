@@ -139,6 +139,15 @@
 .floating-sheet .char-head .sheet-minimize-x:hover{background:#c3263b!important;transform:scale(1.07)}
 @media(max-width:760px){.floating-sheet{left:8px!important;right:8px!important;top:66px!important;width:auto!important;height:calc(100dvh - 310px)!important;max-height:calc(100dvh - 310px)!important;min-width:0!important;min-height:220px!important;resize:none!important}.floating-sheet .char-head{gap:8px;padding:10px 52px 10px 10px!important;min-height:76px}.floating-sheet .char-portrait{width:48px;height:48px;flex-basis:48px}.floating-sheet .char-title h2{font-size:17px}.floating-sheet .char-head .mini-actions{max-width:100%;gap:4px}.floating-sheet .char-head .mini-actions button{padding:5px 6px;font-size:10px}.floating-sheet .char-head .sheet-minimize-x{right:7px!important;top:7px!important;width:34px!important;height:34px!important;min-width:34px!important}.floating-sheet .sheet-tabs{top:76px!important}}
 @media(max-width:650px){.floating-sheet{left:6px!important;right:6px!important;top:64px!important;width:auto!important;height:calc(100dvh - 300px)!important;max-height:calc(100dvh - 300px)!important;min-height:210px!important}.floating-sheet .char-head{padding-right:48px!important}.floating-sheet .char-head .mini-actions{gap:3px}.floating-sheet .char-head .mini-actions button{font-size:9px;padding:4px 5px}}
+
+/* Identidade visual unificada dos seletores principais da ficha */
+.character-choice-card{border:1px solid #78313d!important;border-radius:3px!important;background:linear-gradient(145deg,#171016,#0d0e14)!important;padding:11px!important;box-shadow:inset 3px 0 0 #9e1c2b,0 5px 16px #0004}
+.character-choice-card h4{color:#ef7d89!important;font-size:12px!important;letter-spacing:.09em;text-transform:uppercase;margin:0 0 9px!important}
+.character-choice-card select{color:#f09aa3!important;border:1px solid #74303b!important;border-radius:3px!important;background:#100c12!important;min-height:40px}
+.character-choice-card select:focus{border-color:#d83a48!important;box-shadow:0 0 0 2px #bd3a4833!important}
+.character-choice-card .rules-note{color:#b98b91!important;margin-top:8px}
+.concept-library-card{grid-column:1/-1}
+
 </style>
 </head>
 <body><div class="app" id="app"></div><div id="modal-root"></div><div id="floating-root" class="floating-root"></div><div id="toast-root"></div>
@@ -1087,7 +1096,19 @@ sheetDetails=function(c){
  const options=V13_CHARACTER_CONCEPTS.map(x=>'<option value="'+esc(x.name)+'" '+(selected===x.name?'selected':'')+'>'+esc(x.name)+'</option>').join('');
  const customOptions=custom.map(x=>'<option value="'+esc(x)+'" '+(selected===x?'selected':'')+'>'+esc(x)+' (personalizado)</option>').join('');
  const picker='<section class="resource-category" style="grid-column:1/-1"><h4>Conceitos de personagem</h4><p class="rules-note">Escolha um dos 13 conceitos para preencher sugestões editáveis de Ambição, Desejo, Convicções, Tocantes e Notas. Você pode alterar todos os textos depois.</p><div class="field"><label>Biblioteca de conceitos</label><select id="character-concept-select"><option value="">— Escolher conceito —</option>'+options+customOptions+'<option value="__other__">Outro*</option></select></div><div id="character-concept-other" class="field" style="margin-top:9px;'+(c.concept==='__other__'?'':'display:none')+'"><label>Nome do novo conceito</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="character-concept-custom-name" placeholder="Digite o nome do conceito" style="flex:1;min-width:180px"><button type="button" id="character-concept-save" class="primary">Salvar como opção</button></div><small class="predator-info">O nome será guardado nesta ficha para poder ser selecionado novamente.</small></div></section>';
- let html=base.replace('<div class="field"><label>Conceito</label><input data-field="concept" value="'+esc(c.concept)+'"></div>', '<div class="field"><label>Conceito</label><input data-field="concept" value="'+esc(c.concept)+'"></div>'+picker);
+ let html=base;
+ /* Remove o campo antigo de texto livre: a biblioteca passa a ser a única entrada de conceito. */
+ html=html.replace(/<div class="field"><label>Conceito<\/label><input data-field="concept" value="[^"]*"><\/div>/,'');
+ const styledPicker=picker.replace('class="resource-category"','class="resource-category character-choice-card concept-library-card"');
+ html=html.replace(/<div class="field"><label>Clã<\/label><select data-field="clan">[\s\S]*?<\/select><\/div>/,function(match){
+   const select=match.match(/<select data-field="clan">[\s\S]*?<\/select>/)?.[0]||'';
+   return '<section class="resource-category character-choice-card clan-choice-card"><h4>Clã</h4>'+select+'<p class="rules-note">A seleção define os Atributos favorecidos, Disciplinas e a Maldição de Clã.</p></section>';
+ });
+ html=html.replace(/<div class="field"><label>Tipo de Predador<\/label><select data-field="predator">[\s\S]*?<\/select><p class="predator-info">[\s\S]*?<\/p><\/div>/,function(match){
+   const select=match.match(/<select data-field="predator">[\s\S]*?<\/select>/)?.[0]||'';
+   return '<section class="resource-category character-choice-card predator-choice-card"><h4>Tipo de Predador</h4>'+select+'<p class="rules-note">O tipo escolhido define seu método de caça e seus benefícios. Consulte a aba Recursos para ver os detalhes.</p></section>';
+ });
+ html=html.replace('<div class="field"><label>Jogador</label>',styledPicker+'<div class="field"><label>Jogador</label>');
  html=html.replace('<div class="field full"><label>Convicções</label>', '<div class="field full"><label>Ambição</label><textarea data-field="ambition" rows="2" placeholder="Objetivo de longo prazo do personagem">'+esc(c.ambition||'')+'</textarea></div><div class="field full"><label>Desejo</label><textarea data-field="desire" rows="2" placeholder="Objetivo imediato ou desejo pessoal">'+esc(c.desire||'')+'</textarea></div><div class="field full"><label>Convicções</label>');
  return html;
 };
