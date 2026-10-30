@@ -1060,6 +1060,62 @@ document.addEventListener('mousemove',function(e){
 const v12DerivedBeforeTraits=derived;
 derived=function(c){let d=v12DerivedBeforeTraits(c);d.defense+=v12TraitRollModifier(c,'defense');return d};
 
+
+/* v13 — Biblioteca de conceitos narrativos na aba Detalhes. */
+const V13_CHARACTER_CONCEPTS=[
+{name:'O Herdeiro de um Mundo Morto',clans:'Ventrue, Toreador ou Lasombra',ambition:'Reconstruir o legado de sua família, mesmo que precise substituir seus antigos membros.',desire:'Ser reconhecido por alguém que não tenha medo dele.',convictions:'Poder não justifica abandonar aqueles que dependem de você.',touchstones:'Um parente mortal que ainda preserva uma lembrança sincera de quem você foi.',notes:'Antigo herdeiro de uma família influente. Seu legado foi tomado por alguém que talvez seja mais competente. Gancho: um parente investiga seu desaparecimento.'},
+{name:'O Detetive dos Impossíveis',clans:'Banu Haqim, Nosferatu ou Malkavian',ambition:'Descobrir quem controla a rede de desaparecimentos da cidade.',desire:'Resolver um último caso que nunca conseguiu solucionar em vida.',convictions:'Nenhuma vítima deve ser esquecida.',touchstones:'Um antigo colega investigador que continua procurando a verdade.',notes:'Ex-investigador criminal que descobriu que os crimes mais perturbadores envolvem criaturas sobrenaturais. Gancho: uma vítima de um caso antigo aparece em uma fotografia recente sem ter envelhecido.'},
+{name:'O Santo que Perdeu a Fé',clans:'Lasombra, Toreador ou Banu Haqim',ambition:'Descobrir se ainda existe alguma forma de redenção.',desire:'Encontrar alguém que consiga acreditar nele novamente.',convictions:'A vida humana possui valor mesmo quando ninguém está olhando.',touchstones:'Um antigo membro de sua congregação que ainda busca seus conselhos.',notes:'Ex-sacerdote ou líder religioso Abraçado por alguém que acreditava oferecer uma existência superior. Gancho: um fiel afirma receber mensagens de uma entidade que conhece seu verdadeiro nome.'},
+{name:'O Fantasma da Internet',clans:'Nosferatu, Malkavian ou Tremere',ambition:'Controlar uma rede de informações que torne impossível apagá-lo novamente.',desire:'Ser lembrado por alguém que conheceu antes do Abraço.',convictions:'Informação nunca deve ser propriedade exclusiva dos poderosos.',touchstones:'Uma pessoa mortal que guarda uma cópia de sua antiga identidade digital.',notes:'Especialista em segurança digital que sobrevive por meio de servidores, câmeras e redes clandestinas. Gancho: alguém publica informações sobre vampiros que nunca deveriam ter sido descobertas.'},
+{name:'O Último Sobrevivente',clans:'Brujah, Gangrel ou Ravnos',ambition:'Construir um refúgio onde ninguém seja abandonado.',desire:'Conseguir dormir sem reviver a tragédia.',convictions:'Nunca abandonar alguém que esteja sob sua proteção.',touchstones:'Outro sobrevivente da tragédia que tenta reconstruir a própria vida.',notes:'Perdeu tudo em guerra, massacre, incêndio ou desastre. Sua necessidade de proteger pode se tornar controle e violência. Gancho: um sobrevivente afirma que você foi responsável por sua morte.'},
+{name:'O Médico da Noite',clans:'Tremere, Salubri ou Ventrue',ambition:'Desenvolver uma maneira de controlar a Fome sem destruir vidas.',desire:'Salvar uma pessoa específica que está morrendo de uma doença incurável.',convictions:'A vida não deve ser descartada por conveniência.',touchstones:'Um antigo paciente ou colega que mantém viva sua vocação médica.',notes:'Médico que precisa conciliar o juramento de preservar vidas com a necessidade vampírica de sangue. Gancho: um paciente apresenta sinais de uma doença que afeta exclusivamente vampiros.'},
+{name:'O Príncipe das Ruas',clans:'Brujah, Gangrel ou Ministério',ambition:'Libertar seu território do domínio de uma autoridade vampírica.',desire:'Garantir que sua comunidade continue existindo.',convictions:'Ninguém deve ser tratado como propriedade.',touchstones:'Uma liderança comunitária mortal que confia em você sem conhecer sua natureza.',notes:'Ex-ativista ou organizador comunitário que combate estruturas de exploração. Para proteger os seus, precisa negociar com monstros. Gancho: pessoas desaparecem após aceitar ajuda de uma organização local.'},
+{name:'O Colecionador de Segredos',clans:'Tremere, Nosferatu ou Toreador',ambition:'Encontrar um registro histórico capaz de revelar a origem de uma linhagem vampírica.',desire:'Descobrir o que aconteceu com seu antigo mentor.',convictions:'O passado não deve ser alterado para proteger os poderosos.',touchstones:'Um aprendiz mortal que acredita que o conhecimento deve ser compartilhado.',notes:'Pesquisador que coleciona objetos, documentos e histórias esquecidas. Algumas verdades são perigosas demais para serem preservadas. Gancho: um documento contém o nome verdadeiro de um ancião desaparecido.'},
+{name:'A Máscara Perfeita',clans:'Toreador, Ventrue ou Ministério',ambition:'Tornar-se uma figura indispensável à sociedade mortal e vampírica.',desire:'Ser amada por alguém que conheça sua verdadeira personalidade.',convictions:'A dignidade de uma pessoa não depende de sua aparência.',touchstones:'Alguém que conheceu você antes da fama e ainda enxerga além da persona pública.',notes:'Ex-atriz, influenciadora ou personalidade pública que construiu uma identidade fabricada. Já não distingue a máscara de si mesma. Gancho: alguém reproduz sua identidade e comete crimes em seu nome.'},
+{name:'O Caçador que se Tornou Monstro',clans:'Banu Haqim, Gangrel ou Brujah',ambition:'Destruir a organização que o transformou.',desire:'Encontrar sua antiga equipe.',convictions:'Ninguém deve ser obrigado a se tornar aquilo que odeia.',touchstones:'Um antigo companheiro de caça que ainda acredita que você pode ser salvo.',notes:'Ex-caçador de vampiros capturado e Abraçado por seu inimigo. Seu conhecimento é valioso, mas usá-lo pode condenar antigos aliados. Gancho: sua antiga organização inicia uma operação para capturá-lo.'},
+{name:'O Filho que Nunca Cresceu',clans:'Malkavian, Toreador ou Brujah',ambition:'Encontrar alguém que consiga ajudá-lo a recuperar a vida que perdeu.',desire:'Experimentar algo verdadeiramente novo.',convictions:'Ninguém deve ser condenado por aquilo que não teve oportunidade de aprender.',touchstones:'Uma pessoa mortal que o trata com honestidade, sem infantilizá-lo ou temê-lo.',notes:'Abraçado muito jovem e preso a uma aparência e condição emocional que não acompanham o tempo vivido. Gancho: alguém o trata como uma pessoa que conheceu décadas atrás.'},
+{name:'O Diplomata dos Condenados',clans:'Ventrue, Toreador ou Lasombra',ambition:'Estabelecer uma aliança duradoura entre grupos rivais.',desire:'Resolver um conflito sem precisar derramar sangue.',convictions:'Uma promessa deve ter valor, mesmo entre monstros.',touchstones:'Um mediador mortal que ainda acredita na negociação justa.',notes:'Ex-diplomata, advogado ou negociador. Todo acordo vampírico esconde uma ameaça. Gancho: dois grupos rivais exigem tratados simultâneos sem conhecer o outro acordo.'},
+{name:'O Portador da Maldição',clans:'Tremere, Malkavian, Hecata ou Nosferatu',ambition:'Descobrir a origem daquilo que o acompanha.',desire:'Ter uma noite de paz, sem sinais ou presságios.',convictions:'Não se deve sacrificar inocentes para satisfazer a curiosidade.',touchstones:'Uma pessoa cética que o mantém ligado à realidade e questiona suas certezas.',notes:'Abraçado em circunstâncias incomuns, é acompanhado por sonhos, desaparecimentos e fenômenos inexplicáveis. Talvez não exista maldição alguma. Gancho: um desconhecido afirma que você morreu uma vez antes do Abraço.'}
+];
+const v13OriginalDetails=sheetDetails;
+sheetDetails=function(c){
+ const base=v13OriginalDetails(c);
+ const custom=Array.isArray(c.customConceptOptions)?c.customConceptOptions:[];
+ const preset=V13_CHARACTER_CONCEPTS.find(x=>x.name===c.concept);
+ const isCustom=custom.includes(c.concept);
+ const selected=preset?preset.name:(isCustom?c.concept:'');
+ const options=V13_CHARACTER_CONCEPTS.map(x=>'<option value="'+esc(x.name)+'" '+(selected===x.name?'selected':'')+'>'+esc(x.name)+'</option>').join('');
+ const customOptions=custom.map(x=>'<option value="'+esc(x)+'" '+(selected===x?'selected':'')+'>'+esc(x)+' (personalizado)</option>').join('');
+ const picker='<section class="resource-category" style="grid-column:1/-1"><h4>Conceitos de personagem</h4><p class="rules-note">Escolha um dos 13 conceitos para preencher sugestões editáveis de Ambição, Desejo, Convicções, Tocantes e Notas. Você pode alterar todos os textos depois.</p><div class="field"><label>Biblioteca de conceitos</label><select id="character-concept-select"><option value="">— Escolher conceito —</option>'+options+customOptions+'<option value="__other__">Outro*</option></select></div><div id="character-concept-other" class="field" style="margin-top:9px;'+(c.concept==='__other__'?'':'display:none')+'"><label>Nome do novo conceito</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="character-concept-custom-name" placeholder="Digite o nome do conceito" style="flex:1;min-width:180px"><button type="button" id="character-concept-save" class="primary">Salvar como opção</button></div><small class="predator-info">O nome será guardado nesta ficha para poder ser selecionado novamente.</small></div></section>';
+ let html=base.replace('<div class="field"><label>Conceito</label><input data-field="concept" value="'+esc(c.concept)+'"></div>', '<div class="field"><label>Conceito</label><input data-field="concept" value="'+esc(c.concept)+'"></div>'+picker);
+ html=html.replace('<div class="field full"><label>Convicções</label>', '<div class="field full"><label>Ambição</label><textarea data-field="ambition" rows="2" placeholder="Objetivo de longo prazo do personagem">'+esc(c.ambition||'')+'</textarea></div><div class="field full"><label>Desejo</label><textarea data-field="desire" rows="2" placeholder="Objetivo imediato ou desejo pessoal">'+esc(c.desire||'')+'</textarea></div><div class="field full"><label>Convicções</label>');
+ return html;
+};
+function v13ApplyConcept(c,name){
+ const preset=V13_CHARACTER_CONCEPTS.find(x=>x.name===name);
+ if(preset){c.concept=preset.name;c.ambition=preset.ambition;c.desire=preset.desire;c.convictions=preset.convictions;c.touchstones=preset.touchstones;c.notes=preset.notes;c.conceptClans=preset.clans;return true}
+ if(Array.isArray(c.customConceptOptions)&&c.customConceptOptions.includes(name)){c.concept=name;return true}
+ return false;
+}
+document.addEventListener('change',function(e){
+ if(e.target?.id!=='character-concept-select')return;
+ const c=char(),value=e.target.value,other=document.getElementById('character-concept-other');
+ if(value==='__other__'){if(other)other.style.display='block';return}
+ if(!value)return;
+ if(v13ApplyConcept(c,value)){save();renderFloatingSheet();wire();wireExtra();toast('Conceito aplicado. Os textos continuam editáveis.')}
+},true);
+document.addEventListener('click',function(e){
+ const btn=e.target.closest('#character-concept-save');if(!btn)return;
+ e.preventDefault();e.stopPropagation();
+ const c=char(),input=document.getElementById('character-concept-custom-name'),name=String(input?.value||'').trim();
+ if(!name){toast('Digite um nome para o conceito.');input?.focus();return}
+ if(V13_CHARACTER_CONCEPTS.some(x=>x.name.toLowerCase()===name.toLowerCase())){toast('Esse nome já existe na biblioteca. Selecione-o na lista.');return}
+ c.customConceptOptions=Array.isArray(c.customConceptOptions)?c.customConceptOptions:[];
+ if(!c.customConceptOptions.some(x=>x.toLowerCase()===name.toLowerCase()))c.customConceptOptions.push(name);
+ c.concept=name;
+ save();renderFloatingSheet();wire();wireExtra();toast('Conceito personalizado salvo nesta ficha.');
+},true);
+
 render();if(sessionStorage.getItem('vtm_session'))connect();else showMultiplayerGate();
 })();
 </script></body></html>
