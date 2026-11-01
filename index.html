@@ -148,6 +148,13 @@
 .character-choice-card .rules-note{color:#b98b91!important;margin-top:8px}
 .concept-library-card{grid-column:1/-1}
 
+
+/* Layout limpo para os campos principais de Detalhes */
+.character-choice-card{align-self:stretch;min-width:0}
+.concept-library-card{grid-column:1/-1}
+.clan-choice-card,.predator-choice-card{grid-column:span 1}
+.clan-choice-card label,.predator-choice-card label{display:block;color:#ef7d89;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+@media(max-width:620px){.clan-choice-card,.predator-choice-card{grid-column:1/-1}}
 </style>
 </head>
 <body><div class="app" id="app"></div><div id="modal-root"></div><div id="floating-root" class="floating-root"></div><div id="toast-root"></div>
@@ -1097,18 +1104,26 @@ sheetDetails=function(c){
  const customOptions=custom.map(x=>'<option value="'+esc(x)+'" '+(selected===x?'selected':'')+'>'+esc(x)+' (personalizado)</option>').join('');
  const picker='<section class="resource-category" style="grid-column:1/-1"><h4>Conceitos de personagem</h4><p class="rules-note">Escolha um dos 13 conceitos para preencher sugestões editáveis de Ambição, Desejo, Convicções, Tocantes e Notas. Você pode alterar todos os textos depois.</p><div class="field"><label>Biblioteca de conceitos</label><select id="character-concept-select"><option value="">— Escolher conceito —</option>'+options+customOptions+'<option value="__other__">Outro*</option></select></div><div id="character-concept-other" class="field" style="margin-top:9px;'+(c.concept==='__other__'?'':'display:none')+'"><label>Nome do novo conceito</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="character-concept-custom-name" placeholder="Digite o nome do conceito" style="flex:1;min-width:180px"><button type="button" id="character-concept-save" class="primary">Salvar como opção</button></div><small class="predator-info">O nome será guardado nesta ficha para poder ser selecionado novamente.</small></div></section>';
  let html=base;
- /* Remove o campo antigo de texto livre: a biblioteca passa a ser a única entrada de conceito. */
+ /* Nome e jogador compartilham a primeira linha. */
+ const nameField=html.match(/<div class="field"><label>Nome do personagem<\/label>[\s\S]*?<\/div>/)?.[0]||'';
+ const playerField=html.match(/<div class="field"><label>Jogador<\/label>[\s\S]*?<\/div>/)?.[0]||'';
+ if(nameField&&playerField){
+   html=html.replace(nameField,nameField+playerField);
+   html=html.replace(playerField,'');
+ }
+ /* Elimina o campo Conceito legado e coloca a biblioteca em uma linha própria. */
  html=html.replace(/<div class="field"><label>Conceito<\/label><input data-field="concept" value="[^"]*"><\/div>/,'');
  const styledPicker=picker.replace('class="resource-category"','class="resource-category character-choice-card concept-library-card"');
  html=html.replace(/<div class="field"><label>Clã<\/label><select data-field="clan">[\s\S]*?<\/select><\/div>/,function(match){
    const select=match.match(/<select data-field="clan">[\s\S]*?<\/select>/)?.[0]||'';
-   return '<section class="resource-category character-choice-card clan-choice-card"><h4>Clã</h4>'+select+'<p class="rules-note">A seleção define os Atributos favorecidos, Disciplinas e a Maldição de Clã.</p></section>';
+   return '<section class="resource-category character-choice-card clan-choice-card">'+select.replace('<select','<label>Clã</label><select')+'</section>';
  });
  html=html.replace(/<div class="field"><label>Tipo de Predador<\/label><select data-field="predator">[\s\S]*?<\/select><p class="predator-info">[\s\S]*?<\/p><\/div>/,function(match){
    const select=match.match(/<select data-field="predator">[\s\S]*?<\/select>/)?.[0]||'';
-   return '<section class="resource-category character-choice-card predator-choice-card"><h4>Tipo de Predador</h4>'+select+'<p class="rules-note">O tipo escolhido define seu método de caça e seus benefícios. Consulte a aba Recursos para ver os detalhes.</p></section>';
+   return '<section class="resource-category character-choice-card predator-choice-card"><label>Tipo de Predador</label>'+select+'</section>';
  });
- html=html.replace('<div class="field"><label>Jogador</label>',styledPicker+'<div class="field"><label>Jogador</label>');
+ html=html.replace(/<section class="resource-category character-choice-card clan-choice-card">[\s\S]*?<\/section>/,styledPicker+'<section class="resource-category character-choice-card clan-choice-card">'+(html.match(/<select data-field="clan">[\s\S]*?<\/select>/)?.[0]||'')+'</section>');
+ html=html.replace('<div class="field"><label>Senhor / Sire</label>', '<div class="field"><label>Senhor / Sire</label>');
  html=html.replace('<div class="field full"><label>Convicções</label>', '<div class="field full"><label>Ambição</label><textarea data-field="ambition" rows="2" placeholder="Objetivo de longo prazo do personagem">'+esc(c.ambition||'')+'</textarea></div><div class="field full"><label>Desejo</label><textarea data-field="desire" rows="2" placeholder="Objetivo imediato ou desejo pessoal">'+esc(c.desire||'')+'</textarea></div><div class="field full"><label>Convicções</label>');
  return html;
 };
