@@ -156,7 +156,7 @@
 .clan-choice-card label,.predator-choice-card label{display:block;color:#ef7d89;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
 @media(max-width:620px){.clan-choice-card,.predator-choice-card{grid-column:1/-1}}
 </style>
-</head>
+<style id="v12-trait-tooltip-fix">.v12-option-hover{position:fixed!important;z-index:99999!important;display:none;max-height:min(55vh,420px);overflow:auto;pointer-events:none;background:#17131a;border:1px solid #a43a49;border-radius:10px;padding:12px;box-shadow:0 16px 50px #000d;color:#f3f0ec}.v12-option-hover.hovering{display:block!important}@media(max-width:760px){.v12-option-hover{max-height:38vh}}</style></head>
 <body><div class="app" id="app"></div><div id="modal-root"></div><div id="floating-root" class="floating-root"></div><div id="toast-root"></div>
 <script>
 (()=>{'use strict';
@@ -1065,11 +1065,30 @@ rollInitiative=function(){let c=char(),r=rollDie(20),trait=v12TraitRollModifier(
 function v12TraitCostNote(category,name){
  let t=v12TraitByName(category,name);return t&&t.note?t.note:'';
 }
-document.addEventListener('mousemove',function(e){
- let b=e.target.closest('.v12-option');if(!b)return;let tip=b.querySelector('.v12-option-hover');if(!tip)return;
- let left=Math.min(window.innerWidth-360,e.clientX+14),top=Math.min(window.innerHeight-180,Math.max(8,e.clientY-25));
- tip.style.left=Math.max(8,left)+'px';tip.style.top=Math.max(8,top)+'px';
+function v12PositionTraitTooltip(b,tip){
+ const sheet=document.querySelector('.floating-sheet'),r=sheet?sheet.getBoundingClientRect():b.getBoundingClientRect();
+ const gap=12,w=Math.min(340,window.innerWidth-16);
+ let left=r.right+gap;
+ if(left+w>window.innerWidth-8)left=Math.max(8,window.innerWidth-w-8);
+ let top=Math.max(8,Math.min(r.top+70,window.innerHeight-220));
+ tip.style.position='fixed';tip.style.width=w+'px';tip.style.maxWidth=w+'px';
+ tip.style.left=left+'px';tip.style.top=top+'px';tip.style.zIndex='99999';
+}
+function v12ShowTraitTooltip(b){
+ const tip=b?.querySelector('.v12-option-hover');if(!tip)return;
+ document.querySelectorAll('.v12-option-hover').forEach(x=>{if(x!==tip)x.style.display='none'});
+ tip.style.display='block';tip.classList.add('hovering');v12PositionTraitTooltip(b,tip);
+}
+document.addEventListener('mouseover',function(e){
+ const b=e.target.closest('.v12-option');if(!b)return;v12ShowTraitTooltip(b);
 });
+document.addEventListener('mouseout',function(e){
+ const b=e.target.closest('.v12-option');if(!b||b.contains(e.relatedTarget))return;
+ const tip=b.querySelector('.v12-option-hover');if(tip){tip.style.display='none';tip.classList.remove('hovering')}
+});
+document.addEventListener('focusin',function(e){const b=e.target.closest('.v12-option');if(b)v12ShowTraitTooltip(b)});
+window.addEventListener('resize',function(){const b=document.querySelector('.v12-option:hover');if(b){const tip=b.querySelector('.v12-option-hover');if(tip)v12PositionTraitTooltip(b,tip)}});
+
 
 
 /* Aplicação de Defesa derivada das Vantagens ativadas. */
