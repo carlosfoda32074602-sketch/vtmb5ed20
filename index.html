@@ -1171,6 +1171,19 @@ document.addEventListener('click',function(e){
  save();renderFloatingSheet();wire();wireExtra();toast('Conceito personalizado salvo nesta ficha.');
 },true);
 
+const v14Surge=pb=>pb===0?1:pb<=2?2:pb<=4?3:pb<=6?4:pb<=8?5:6;
+const v14Mend=pb=>pb<=1?1:pb<=3?2:pb<=7?3:pb<=9?4:5;
+function v14Panel(c,d){let pb=Math.max(0,Math.min(10,+c.pb||0)),sd=v14Surge(pb),md=v14Mend(pb);return '<div class="subhead">Surto de Sangue</div><p class="rules-note">Checagem de Incitação (d10, sucesso 6+); adiciona '+sd+' dados a uma rolagem elegível com Atributo.</p><button class="primary" data-v14="surge">Ativar Surto (+ '+sd+' dados)</button><div class="subhead">Cura superficial</div><p class="rules-note">Uma checagem por turno; cura '+md+' superficial(is) por sucesso.</p><button class="primary" data-v14="superficial">Rolar cura superficial ('+md+')</button><div class="subhead">Cura agravada</div><p class="rules-note">Ao anoitecer, três checagens para curar 1 agravado.</p><button class="primary" data-v14="aggravated">Rolar cura agravada (3 checagens)</button><div class="subhead">Resumo dinâmico · PB '+pb+'</div><div class="derived-list"><div class="derived"><span>Dados de Surto</span><b>+'+sd+'</b></div><div class="derived"><span>Cura superficial/checagem</span><b>'+md+'</b></div><div class="derived"><span>Fome</span><b>'+c.hunger+'/5</b></div></div>'}
+const v14RenderSheet=renderSheet;
+renderSheet=function(c,d){let h=v14RenderSheet(c,d);if(!h)return h;h=h.replace("['Atributos','Habilidades','Disciplinas','Detalhes','Recursos']","['Atributos','Habilidades','Disciplinas','Detalhes','Ataques & Rolagens','Recursos']");h=h.replace("tab==='Detalhes'?sheetDetails(c):sheetResources(c,d)","tab==='Detalhes'?sheetDetails(c):tab==='Ataques & Rolagens'?v14Panel(c,d):sheetResources(c,d)");return h};
+function v14Check(c){let n=1+Math.floor(Math.random()*10),ok=n>=6;if(!ok)c.hunger=Math.min(5,(+c.hunger||0)+1);return {n,ok}}
+function v14Run(kind){let c=char(),pb=Math.max(0,Math.min(10,+c.pb||0)),d=derived(c),nm=c.name||'Personagem';if(+c.hunger>=5){toast('Fome 5: não pode incitar o sangue voluntariamente.');return}let detail='',title='';
+if(kind==='surge'){let r=v14Check(c);title='Surto de Sangue: +'+v14Surge(pb)+' dados';detail='Checagem d10 '+r.n+': '+(r.ok?'sucesso':'falha; Fome +1')+'. Dados adicionais aplicam-se a uma rolagem elegível.'}
+else if(kind==='superficial'){if(+c.health>=d.health){toast('Vitalidade cheia.');return}let r=v14Check(c),heal=r.ok?Math.min(v14Mend(pb),d.health-(+c.health||0)):0;c.health=(+c.health||0)+heal;title=r.ok?'Cura superficial: +'+heal+' Vitalidade':'Cura superficial: falha';detail='Checagem d10 '+r.n+': '+(r.ok?'sucesso':'falha; Fome +1')+'. PB '+pb+' permite até '+v14Mend(pb)+' superficial(is) por checagem.'}
+else{if(+c.health>=d.health){toast('Vitalidade cheia.');return}let rs=[v14Check(c),v14Check(c),v14Check(c)],ok=rs.every(x=>x.ok);if(ok)c.health=Math.min(d.health,(+c.health||0)+1);title=ok?'Cura agravada: +1 Vitalidade':'Cura agravada: falha';detail='Três checagens d10: '+rs.map(x=>x.n+(x.ok?' ✓':' ✗')).join(', ')+'. '+(ok?'1 agravado curado.':'As três devem ter sucesso para curar 1 agravado.')}
+addChat(nm,title,'roll','<div class="roll-result"><div class="total">'+esc(title)+'</div><div class="detail">'+esc(detail)+'</div></div>');save();renderFloatingSheet();renderChat();wire();wireExtra()}
+document.addEventListener('click',e=>{let b=e.target.closest('[data-v14]');if(b){e.preventDefault();v14Run(b.dataset.v14)}},true);
+
 render();if(sessionStorage.getItem('vtm_session'))connect();else showMultiplayerGate();
 })();
 </script></body></html>
